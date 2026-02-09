@@ -5,29 +5,112 @@
   onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
 >
   <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
-  <checkbox
-    id="zotero-prefpane-__addonRef__-enable"
-    preference="enable"
-    data-l10n-id="pref-enable"
-  />
-  <hbox>
-    <html:label
-      for="zotero-prefpane-__addonRef__-input"
-      data-l10n-id="pref-input"
-    ></html:label>
-    <html:input
-      type="text"
-      id="zotero-prefpane-__addonRef__-input"
-      preference="input"
-    ></html:input>
-  </hbox>
-  <hbox class="virtualized-table-container" flex="1" height="300px">
-    <html:div id="__addonRef__-table-container" />
-  </hbox>
+
+  <!-- Credentials Section -->
+  <groupbox>
+    <label><html:h3 data-l10n-id="pref-credentials-heading"></html:h3></label>
+    <html:p data-l10n-id="pref-credentials-description"></html:p>
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-client-id"
+        data-l10n-id="pref-client-id"
+      ></html:label>
+      <html:input
+        type="text"
+        id="zotero-prefpane-__addonRef__-client-id"
+        preference="clientId"
+        style="flex: 1"
+      />
+    </hbox>
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-client-secret"
+        data-l10n-id="pref-client-secret"
+      ></html:label>
+      <html:input
+        type="password"
+        id="zotero-prefpane-__addonRef__-client-secret"
+        preference="clientSecret"
+        style="flex: 1"
+      />
+    </hbox>
+  </groupbox>
+
+  <!-- Default OCR Options Section -->
+  <groupbox>
+    <label
+      ><html:h3 data-l10n-id="pref-defaults-heading"></html:h3
+    ></label>
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-ocr-lang"
+        data-l10n-id="pref-ocr-lang"
+      ></html:label>
+      <menulist
+        id="zotero-prefpane-__addonRef__-ocr-lang"
+        preference="ocrLang"
+      >
+        <menupopup>
+          <menuitem label="English (US)" value="en-US" />
+          <menuitem label="English (GB)" value="en-GB" />
+          <menuitem label="German" value="de-DE" />
+          <menuitem label="French" value="fr-FR" />
+          <menuitem label="Spanish" value="es-ES" />
+          <menuitem label="Italian" value="it-IT" />
+          <menuitem label="Japanese" value="ja-JP" />
+          <menuitem label="Korean" value="ko-KR" />
+          <menuitem label="Portuguese (BR)" value="pt-BR" />
+          <menuitem label="Chinese (Simplified)" value="zh-Hans" />
+          <menuitem label="Chinese (Traditional)" value="zh-Hant" />
+          <menuitem label="Dutch" value="nl-NL" />
+          <menuitem label="Swedish" value="sv-SE" />
+          <menuitem label="Norwegian" value="nb-NO" />
+          <menuitem label="Polish" value="pl-PL" />
+          <menuitem label="Russian" value="ru-RU" />
+          <menuitem label="Turkish" value="tr-TR" />
+          <menuitem label="Czech" value="cs-CZ" />
+          <menuitem label="Danish" value="da-DK" />
+          <menuitem label="Finnish" value="fi-FI" />
+          <menuitem label="Hungarian" value="hu-HU" />
+          <menuitem label="Romanian" value="ro-RO" />
+          <menuitem label="Ukrainian" value="uk-UA" />
+          <menuitem label="Greek" value="el-GR" />
+          <menuitem label="Hebrew" value="iw-IL" />
+          <menuitem label="Slovak" value="sk-SK" />
+          <menuitem label="Slovenian" value="sl-SI" />
+          <menuitem label="Bulgarian" value="bg-BG" />
+          <menuitem label="Catalan" value="ca-CA" />
+          <menuitem label="Croatian" value="hr-HR" />
+          <menuitem label="Serbian" value="sr-LA" />
+        </menupopup>
+      </menulist>
+    </hbox>
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-ocr-type"
+        data-l10n-id="pref-ocr-type"
+      ></html:label>
+      <menulist
+        id="zotero-prefpane-__addonRef__-ocr-type"
+        preference="ocrType"
+      >
+        <menupopup>
+          <menuitem
+            data-l10n-id="pref-ocr-type-exact"
+            value="SEARCHABLE_IMAGE_EXACT"
+          />
+          <menuitem
+            data-l10n-id="pref-ocr-type-searchable"
+            value="SEARCHABLE_IMAGE"
+          />
+        </menupopup>
+      </menulist>
+    </hbox>
+  </groupbox>
 </groupbox>
 <vbox>
   <html:label
     data-l10n-id="pref-help"
-    data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+    data-l10n-args='{"name": "__addonName__","version":"__buildVersion__"}'
   ></html:label>
 </vbox>
