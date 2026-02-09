@@ -1,24 +1,24 @@
 {
-  "name": "zotero-plugin-template",
+  "name": "zotero-adobe-ocr",
   "type": "module",
-  "version": "3.1.0",
-  "description": "Zotero Plugin Template",
+  "version": "0.1.0",
+  "description": "OCR PDFs using Adobe PDF Services API",
   "config": {
-    "addonName": "Zotero Plugin Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "prefsPrefix": "extensions.zotero.addontemplate"
+    "addonName": "Zotero Adobe OCR",
+    "addonID": "zotero-adobe-ocr@tshippen",
+    "addonRef": "zotero-adobe-ocr",
+    "addonInstance": "ZoteroAdobeOCR",
+    "prefsPrefix": "extensions.zotero.zotero-adobe-ocr"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-plugin-template.git"
+    "url": "git+https://github.com/tshippen/zotero-adobe-ocr-plugin.git"
   },
-  "author": "windingwind",
+  "author": "Tristan Shippen",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-plugin-template/issues"
+    "url": "https://github.com/tshippen/zotero-adobe-ocr-plugin/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-plugin-template#readme",
+  "homepage": "https://github.com/tshippen/zotero-adobe-ocr-plugin",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
