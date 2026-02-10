@@ -1,9 +1,12 @@
 /**
  * Adobe PDF Services REST API client module.
  *
- * Pure HTTP module with no Zotero-specific dependencies. Handles authentication,
- * file upload, OCR job submission, polling, and result download using fetch().
+ * Handles authentication, file upload, OCR job submission, polling,
+ * and result download using fetch(). Logs diagnostics through the
+ * plugin logger utility.
  */
+
+import { logDebug, logTrace } from "../utils/log";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -160,6 +163,7 @@ export async function getAccessToken(
   clientSecret: string,
 ): Promise<string> {
   if (cachedToken !== null && tokenExpiry > Date.now()) {
+    logDebug("Using cached access token");
     return cachedToken;
   }
 
@@ -207,6 +211,7 @@ export async function getAccessToken(
 
   cachedToken = tokenData.access_token;
   tokenExpiry = Date.now() + (tokenData.expires_in - 60) * 1000;
+  logDebug("Fresh access token acquired");
 
   return cachedToken;
 }
@@ -216,6 +221,7 @@ export async function getAccessToken(
  * to request a fresh token.
  */
 export function clearCachedToken(): void {
+  logDebug("Cached token cleared");
   cachedToken = null;
   tokenExpiry = 0;
 }
@@ -299,16 +305,20 @@ export async function ocrPdf(
   // Step 1: Request upload URI
   onProgress?.("uploading");
   const { uploadUri, assetID } = await requestUploadUri(clientId, accessToken);
+  logDebug("Upload URI obtained");
 
   // Step 2: Upload PDF
   await uploadPdf(uploadUri, pdfData);
+  logDebug(`PDF uploaded (${pdfData.byteLength} bytes)`);
 
   // Step 3: Submit OCR job
   onProgress?.("processing");
   const pollUrl = await submitOcrJob(clientId, accessToken, assetID, options);
+  logDebug("OCR job submitted, polling for completion");
 
   // Step 4: Poll for completion
   const downloadUri = await pollForCompletion(clientId, accessToken, pollUrl);
+  logDebug("OCR job complete, downloading result");
 
   // Step 5: Download result
   onProgress?.("downloading");
@@ -495,6 +505,7 @@ async function pollForCompletion(
   pollUrl: string,
 ): Promise<string> {
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+    logTrace(`Poll attempt ${attempt + 1}/${MAX_POLL_ATTEMPTS}`);
     let response: Response;
     try {
       response = await fetch(pollUrl, {
@@ -554,6 +565,7 @@ async function pollForCompletion(
             "OCR completed but the download link was missing from the response.",
         });
       }
+      logDebug(`OCR job finished after ${attempt + 1} poll(s)`);
       return downloadUri;
     }
 
