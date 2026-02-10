@@ -6,6 +6,8 @@
  * for each selected PDF.
  */
 
+import { DialogHelper } from "zotero-plugin-toolkit";
+
 import { AdobeApiError, getAccessToken, ocrPdf } from "./adobeApi";
 import { showOcrDialog } from "./ocrDialog";
 
@@ -14,22 +16,144 @@ import { logDebug, logError, logInfo } from "../utils/log";
 import { getPref } from "../utils/prefs";
 
 // ---------------------------------------------------------------------------
-// Progress window helpers
+// Progress dialog helpers
 // ---------------------------------------------------------------------------
 
+/** Handles returned by {@link openProgressDialog} for controlling the dialog. */
+interface ProgressDialogHandle {
+  /** Update the status line text. */
+  updateStatus: (text: string) => void;
+  /** Mark as success: update status, show dismiss notice, enable Close. */
+  showSuccess: (text: string) => void;
+  /** Mark as error: update status in red, show dismiss notice, enable Close. */
+  showError: (text: string) => void;
+  /** Resolves when the user closes the dialog. */
+  waitForClose: () => Promise<void>;
+}
+
 /**
- * Show an error in a Zotero progress window and auto-close after 4 seconds.
+ * Open a DialogHelper progress dialog for a single OCR item.
+ *
+ * The dialog shows the file name and a status line. The Close button is
+ * disabled while processing and enabled when {@link showSuccess} or
+ * {@link showError} is called.
+ *
+ * @param itemTitle - Display title of the PDF being processed
+ * @returns Control handle for updating and closing the dialog
+ */
+async function openProgressDialog(
+  itemTitle: string,
+): Promise<ProgressDialogHandle> {
+  const dialogData: Record<string, unknown> = {};
+  const dialog = new DialogHelper(3, 1);
+
+  // Row 0: File name
+  dialog.addCell(0, 0, {
+    tag: "label",
+    namespace: "html",
+    properties: { textContent: itemTitle },
+    styles: {
+      fontWeight: "bold",
+      fontSize: "13px",
+      marginBottom: "8px",
+      whiteSpace: "normal",
+      wordBreak: "break-word",
+    },
+  });
+
+  // Row 1: Status text (updated dynamically)
+  dialog.addCell(1, 0, {
+    tag: "label",
+    namespace: "html",
+    id: "ocr-progress-status",
+    properties: { textContent: getString("progress-uploading") },
+    styles: { fontSize: "12px", marginBottom: "4px" },
+  });
+
+  // Row 2: Dismiss notice (shown when done)
+  dialog.addCell(2, 0, {
+    tag: "label",
+    namespace: "html",
+    id: "ocr-progress-notice",
+    properties: { textContent: "" },
+    styles: { fontSize: "11px", color: "#888", fontStyle: "italic" },
+  });
+
+  dialog.addButton("Close", "close");
+  dialog.setDialogData(dialogData);
+  dialog.open(getString("progress-title"), {
+    centerscreen: true,
+    fitContent: true,
+    resizable: false,
+  });
+
+  // Wait for dialog window to be ready
+  const loadLock = dialogData.loadLock as
+    | { promise: Promise<void> }
+    | undefined;
+  await loadLock?.promise;
+
+  const win = dialog.window;
+  const closeBtn = win?.document.querySelector("button") as
+    | HTMLButtonElement
+    | null;
+  if (closeBtn) {
+    closeBtn.disabled = true;
+  }
+
+  const updateStatus = (text: string): void => {
+    const el = win?.document.getElementById("ocr-progress-status");
+    if (el) {
+      el.textContent = text;
+    }
+  };
+
+  const enableClose = (notice: string): void => {
+    const noticeEl = win?.document.getElementById("ocr-progress-notice");
+    if (noticeEl) {
+      noticeEl.textContent = notice;
+    }
+    if (closeBtn) {
+      closeBtn.disabled = false;
+    }
+  };
+
+  const showSuccess = (text: string): void => {
+    updateStatus(text);
+    enableClose(getString("progress-click-to-close"));
+  };
+
+  const showError = (text: string): void => {
+    const el = win?.document.getElementById("ocr-progress-status");
+    if (el) {
+      el.textContent = text;
+      (el as HTMLElement).style.color = "#d32f2f";
+    }
+    enableClose(getString("progress-click-to-close"));
+  };
+
+  const waitForClose = async (): Promise<void> => {
+    const unloadLock = dialogData.unloadLock as
+      | { promise: Promise<void> }
+      | undefined;
+    await unloadLock?.promise;
+  };
+
+  return { updateStatus, showSuccess, showError, waitForClose };
+}
+
+// ---------------------------------------------------------------------------
+// File-write helpers
+/**
+ * Show a simple error alert for pre-processing errors.
  *
  * @param message - The error message to display
  */
-function showErrorProgress(message: string): void {
-  const progressWin = new Zotero.ProgressWindow({ closeOnClick: true });
-  progressWin.changeHeadline(getString("progress-title"));
-  const progressItem = new progressWin.ItemProgress(
-    "chrome://zotero/skin/cross.png",
-    message,
-  );
-  progressWin.show();
+function showError(message: string): void {
+  const win = Zotero.getMainWindow();
+  if (win) {
+    Zotero.alert(win, getString("progress-title"), message);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -146,7 +270,7 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
 
     // Step 3: If zero PDFs, show error and return
     if (pdfItems.length === 0) {
-      showErrorProgress(getString("error-no-pdfs"));
+      showError(getString("error-no-pdfs"));
       return;
     }
 
@@ -156,7 +280,7 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
 
     // Step 5: If credentials are empty, show error and return
     if (!clientId || !clientSecret) {
-      showErrorProgress(getString("error-no-credentials"));
+      showError(getString("error-no-credentials"));
       return;
     }
 
@@ -188,42 +312,42 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
       const itemTitle = item.getDisplayTitle();
       logDebug(`Processing "${itemTitle}"`);
 
-      let progressWin: any = null;
-      let progressItem: any = null;
+      // Step 10a: Get file path
+      const path = await item.getFilePathAsync();
+
+      // Step 10b: If no path, show error and skip
+      if (!path) {
+        logError(`No file path for "${itemTitle}"`);
+        continue;
+      }
+
+      // Step 10c: Read file
+      const data = await IOUtils.read(path);
+
+      // Step 10d: Open progress dialog
+      const progress = await openProgressDialog(itemTitle);
 
       try {
-        // Step 10a: Get file path
-        const path = await item.getFilePathAsync();
-
-        // Step 10b: If no path, show error and skip
-        if (!path) {
-          showErrorProgress(getString("error-no-file"));
-          continue;
-        }
-
-        // Step 10c: Read file
-        const data = await IOUtils.read(path);
-
-        // Step 10d: Show progress window
-        progressWin = new Zotero.ProgressWindow({ closeOnClick: true });
-        progressWin.changeHeadline(getString("progress-title"));
-        progressItem = new progressWin.ItemProgress(
-          "chrome://zotero/skin/default/zotero/treeitem-attachment-pdf.png",
-          itemTitle,
-        );
-        progressWin.show();
-
         // Step 10e: Call OCR pipeline
-        const onProgress = (status: string): void => {
+        const onProgress = (
+          status: string,
+          elapsedSec?: number,
+        ): void => {
           switch (status) {
             case "uploading":
-              progressItem.setText(getString("progress-uploading"));
+              progress.updateStatus(getString("progress-uploading"));
               break;
             case "processing":
-              progressItem.setText(getString("progress-processing"));
+              if (elapsedSec !== undefined && elapsedSec > 0) {
+                progress.updateStatus(
+                  getString("progress-processing") + ` (${elapsedSec}s)`,
+                );
+              } else {
+                progress.updateStatus(getString("progress-processing"));
+              }
               break;
             case "downloading":
-              progressItem.setText(getString("progress-downloading"));
+              progress.updateStatus(getString("progress-downloading"));
               break;
           }
         };
@@ -237,7 +361,7 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
         );
 
         // Step 10f: Save result
-        progressItem.setText(getString("progress-saving"));
+        progress.updateStatus(getString("progress-saving"));
 
         if (result.overwrite) {
           await safeOverwrite(path, ocrResult);
@@ -265,10 +389,8 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
 
         logInfo(`OCR complete: "${itemTitle}"`);
 
-        // Step 10g: Show success
-        progressItem.setText(getString("progress-done"));
-        progressItem.setProgress(100);
-        // closeOnClick: true lets the user dismiss by clicking
+        // Step 10g: Show success and wait for user to dismiss
+        progress.showSuccess(getString("progress-done"));
       } catch (error: unknown) {
         const isApiError = error instanceof AdobeApiError;
         const technicalMsg =
@@ -280,17 +402,13 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
           error instanceof Error ? error : undefined,
         );
 
-        const errorText = getString("error-ocr-failed", {
-          args: { message: userMsg },
-        });
-        if (progressWin !== null && progressItem !== null) {
-          progressItem.setError();
-          progressItem.setText(errorText);
-          // closeOnClick: true lets the user dismiss by clicking
-        } else {
-          showErrorProgress(errorText);
-        }
+        progress.showError(
+          getString("error-ocr-failed", { args: { message: userMsg } }),
+        );
       }
+
+      // Wait for user to close the dialog before processing next item
+      await progress.waitForClose();
     }
   } catch (error: unknown) {
     // Step 12: Catch-all for unexpected errors
@@ -299,6 +417,6 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
       `Unexpected error: ${message}`,
       error instanceof Error ? error : undefined,
     );
-    showErrorProgress(message);
+    showError(message);
   }
 }

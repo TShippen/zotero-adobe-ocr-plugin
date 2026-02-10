@@ -300,7 +300,7 @@ export async function ocrPdf(
   clientId: string,
   accessToken: string,
   options: OcrOptions,
-  onProgress?: (status: string) => void,
+  onProgress?: (status: string, elapsedSec?: number) => void,
 ): Promise<Uint8Array> {
   // Step 1: Request upload URI
   onProgress?.("uploading");
@@ -317,7 +317,12 @@ export async function ocrPdf(
   logDebug("OCR job submitted, polling for completion");
 
   // Step 4: Poll for completion
-  const downloadUri = await pollForCompletion(clientId, accessToken, pollUrl);
+  const downloadUri = await pollForCompletion(
+    clientId,
+    accessToken,
+    pollUrl,
+    onProgress,
+  );
   logDebug("OCR job complete, downloading result");
 
   // Step 5: Download result
@@ -511,8 +516,12 @@ async function pollForCompletion(
   clientId: string,
   accessToken: string,
   pollUrl: string,
+  onProgress?: (status: string, elapsedSec?: number) => void,
 ): Promise<string> {
+  const startTime = Date.now();
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+    const elapsedSec = Math.round((Date.now() - startTime) / 1000);
+    onProgress?.("processing", elapsedSec);
     logTrace(`Poll attempt ${attempt + 1}/${MAX_POLL_ATTEMPTS}`);
     let response: Response;
     try {

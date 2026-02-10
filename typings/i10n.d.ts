@@ -29,6 +29,7 @@ export type FluentMessageId =
   | 'pref-validate-in-progress'
   | 'pref-validate-saved'
   | 'pref-validate-success'
+  | 'progress-click-to-close'
   | 'progress-done'
   | 'progress-downloading'
   | 'progress-processing'
