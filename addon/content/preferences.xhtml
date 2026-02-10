@@ -4,16 +4,18 @@
 <groupbox
   onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
 >
-  <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
-
   <!-- Credentials Section -->
   <groupbox>
-    <label><html:h3 data-l10n-id="pref-credentials-heading"></html:h3></label>
-    <html:p data-l10n-id="pref-credentials-description"></html:p>
+    <label><html:h2 data-l10n-id="pref-credentials-heading"></html:h2></label>
+    <html:p
+      data-l10n-id="pref-credentials-description"
+      style="white-space: normal; margin: 0 0 8px 0"
+    ></html:p>
     <hbox align="center">
       <html:label
         for="zotero-prefpane-__addonRef__-client-id"
         data-l10n-id="pref-client-id"
+        style="min-width: 100px"
       ></html:label>
       <html:input
         type="text"
@@ -26,6 +28,7 @@
       <html:label
         for="zotero-prefpane-__addonRef__-client-secret"
         data-l10n-id="pref-client-secret"
+        style="min-width: 100px"
       ></html:label>
       <html:input
         type="password"
@@ -38,11 +41,12 @@
 
   <!-- Default OCR Options Section -->
   <groupbox>
-    <label><html:h3 data-l10n-id="pref-defaults-heading"></html:h3></label>
+    <label><html:h2 data-l10n-id="pref-defaults-heading"></html:h2></label>
     <hbox align="center">
       <html:label
         for="zotero-prefpane-__addonRef__-ocr-lang"
         data-l10n-id="pref-ocr-lang"
+        style="min-width: 100px"
       ></html:label>
       <menulist id="zotero-prefpane-__addonRef__-ocr-lang" preference="ocrLang">
         <menupopup>
@@ -84,6 +88,7 @@
       <html:label
         for="zotero-prefpane-__addonRef__-ocr-type"
         data-l10n-id="pref-ocr-type"
+        style="min-width: 100px"
       ></html:label>
       <menulist id="zotero-prefpane-__addonRef__-ocr-type" preference="ocrType">
         <menupopup>

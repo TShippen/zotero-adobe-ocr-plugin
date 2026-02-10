@@ -16,3 +16,5 @@ error-download-failed = Failed to download OCR result.
 error-not-pdf = Selected item is not a PDF attachment.
 error-no-file = Could not locate the PDF file on disk.
 error-no-pdfs = No PDF attachments found in the selection.
+
+pref-title = Adobe OCR
