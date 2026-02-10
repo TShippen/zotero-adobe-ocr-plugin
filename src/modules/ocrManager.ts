@@ -56,15 +56,43 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
     const nonPdfItems: Zotero.Item[] = [];
 
     for (const item of selectedItems) {
-      if (
-        item.isAttachment() &&
-        item.attachmentContentType === "application/pdf"
-      ) {
-        pdfItems.push(item);
+      if (item.isAttachment()) {
+        if (item.attachmentContentType === "application/pdf") {
+          pdfItems.push(item);
+        } else {
+          nonPdfItems.push(item);
+        }
       } else {
-        nonPdfItems.push(item);
+        // Parent/regular item -- look up child attachments for PDFs
+        const childIds: number[] = item.getAttachments();
+        let foundPdf = false;
+        for (const childId of childIds) {
+          const child = Zotero.Items.get(childId) as Zotero.Item;
+          if (
+            child.isAttachment() &&
+            child.attachmentContentType === "application/pdf"
+          ) {
+            pdfItems.push(child);
+            foundPdf = true;
+          }
+        }
+        if (!foundPdf) {
+          nonPdfItems.push(item);
+        }
       }
     }
+
+    // Deduplicate in case user selected both a parent and its PDF child
+    const seenIds = new Set<number>();
+    const uniquePdfItems: Zotero.Item[] = [];
+    for (const item of pdfItems) {
+      if (!seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        uniquePdfItems.push(item);
+      }
+    }
+    pdfItems.length = 0;
+    pdfItems.push(...uniquePdfItems);
 
     // Step 3: If zero PDFs, show error and return
     if (pdfItems.length === 0) {
@@ -163,11 +191,13 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
           const newPath = dir ? PathUtils.join(dir, basename) : basename;
           await IOUtils.write(newPath, ocrResult);
 
-          const parentItem = item.parentItem || item;
-          await Zotero.Attachments.importFromFile({
+          const importOptions: { file: string; parentItemID?: number } = {
             file: newPath,
-            parentItemID: parentItem.id,
-          });
+          };
+          if (item.parentItem) {
+            importOptions.parentItemID = item.parentItem.id;
+          }
+          await Zotero.Attachments.importFromFile(importOptions);
 
           // Clean up the temp file after import
           await IOUtils.remove(newPath);
