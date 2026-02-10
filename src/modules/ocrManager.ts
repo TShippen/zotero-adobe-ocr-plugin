@@ -297,7 +297,10 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
   } catch (error: unknown) {
     // Step 12: Catch-all for unexpected errors
     const message = error instanceof Error ? error.message : String(error);
-    logError(`Unexpected error: ${message}`, error instanceof Error ? error : undefined);
+    logError(
+      `Unexpected error: ${message}`,
+      error instanceof Error ? error : undefined,
+    );
     showErrorProgress(message);
   }
 }
