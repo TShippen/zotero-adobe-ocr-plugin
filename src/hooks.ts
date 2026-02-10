@@ -3,6 +3,7 @@ import { config } from "../package.json";
 import { clearCachedToken } from "./modules/adobeApi";
 import { registerMenuItem, removeMenuItem } from "./modules/menu";
 import { getString, initLocale } from "./utils/locale";
+import { logInfo } from "./utils/log";
 import { createZToolkit } from "./utils/ztoolkit";
 
 async function onStartup() {
@@ -26,6 +27,7 @@ async function onStartup() {
   );
 
   addon.data.initialized = true;
+  logInfo("Plugin initialized");
 }
 
 async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
@@ -44,6 +46,7 @@ async function onMainWindowUnload(win: Window): Promise<void> {
 }
 
 function onShutdown(): void {
+  logInfo("Plugin shutting down");
   clearCachedToken();
   ztoolkit.unregisterAll();
   addon.data.alive = false;
