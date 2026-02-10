@@ -182,6 +182,9 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
     for (const item of pdfItems) {
       const itemTitle = item.getDisplayTitle();
 
+      let progressWin: any = null;
+      let progressItem: any = null;
+
       try {
         // Step 10a: Get file path
         const path = await item.getFilePathAsync();
@@ -196,9 +199,9 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
         const data = await IOUtils.read(path);
 
         // Step 10d: Show progress window
-        const progressWin = new Zotero.ProgressWindow({ closeOnClick: true });
+        progressWin = new Zotero.ProgressWindow({ closeOnClick: true });
         progressWin.changeHeadline(getString("progress-title"));
-        const progressItem = new progressWin.ItemProgress(
+        progressItem = new progressWin.ItemProgress(
           "chrome://zotero/skin/default/zotero/treeitem-attachment-pdf.png",
           itemTitle,
         );
@@ -264,7 +267,15 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
         Zotero.logError(
           new Error(`[Adobe OCR] Failed to OCR "${itemTitle}": ${message}`),
         );
-        showErrorProgress(getString("error-ocr-failed", { args: { message } }));
+
+        const errorText = getString("error-ocr-failed", { args: { message } });
+        if (progressWin !== null && progressItem !== null) {
+          progressItem.setIcon("chrome://zotero/skin/cross.png");
+          progressItem.setText(errorText);
+          progressWin.startCloseTimer(4000);
+        } else {
+          showErrorProgress(errorText);
+        }
       }
     }
   } catch (error: unknown) {
