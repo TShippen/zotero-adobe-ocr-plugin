@@ -6,9 +6,11 @@
  * for each selected PDF.
  */
 
-import { getAccessToken, ocrPdf } from "./adobeApi";
+import { AdobeApiError, getAccessToken, ocrPdf } from "./adobeApi";
 import { showOcrDialog } from "./ocrDialog";
+
 import { getString } from "../utils/locale";
+import { logDebug, logError, logInfo } from "../utils/log";
 import { getPref } from "../utils/prefs";
 
 // ---------------------------------------------------------------------------
@@ -175,12 +177,18 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
       return;
     }
 
+    logInfo(
+      `Starting OCR: ${pdfItems.length} PDF(s), mode=${result.overwrite ? "overwrite" : "new"}, lang=${result.ocrLang}, type=${result.ocrType}`,
+    );
+
     // Step 9: Get access token
     const accessToken = await getAccessToken(clientId, clientSecret);
+    logDebug("Access token acquired");
 
     // Step 10: Process each PDF
     for (const item of pdfItems) {
       const itemTitle = item.getDisplayTitle();
+      logDebug(`Processing "${itemTitle}"`);
 
       let progressWin: any = null;
       let progressItem: any = null;
@@ -257,18 +265,26 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
           await IOUtils.remove(newPath);
         }
 
+        logInfo(`OCR complete: "${itemTitle}"`);
+
         // Step 10g: Show success
         progressItem.setText(getString("progress-done"));
         progressItem.setIcon("chrome://zotero/skin/tick.png");
         progressWin.startCloseTimer(4000);
       } catch (error: unknown) {
-        // Step 11: Show failure for this item
-        const message = error instanceof Error ? error.message : String(error);
-        Zotero.logError(
-          new Error(`[Adobe OCR] Failed to OCR "${itemTitle}": ${message}`),
+        const isApiError = error instanceof AdobeApiError;
+        const technicalMsg =
+          error instanceof Error ? error.message : String(error);
+        const userMsg = isApiError ? error.userMessage : technicalMsg;
+
+        logError(
+          `Failed to OCR "${itemTitle}": ${technicalMsg}`,
+          error instanceof Error ? error : undefined,
         );
 
-        const errorText = getString("error-ocr-failed", { args: { message } });
+        const errorText = getString("error-ocr-failed", {
+          args: { message: userMsg },
+        });
         if (progressWin !== null && progressItem !== null) {
           progressItem.setIcon("chrome://zotero/skin/cross.png");
           progressItem.setText(errorText);
@@ -281,7 +297,7 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
   } catch (error: unknown) {
     // Step 12: Catch-all for unexpected errors
     const message = error instanceof Error ? error.message : String(error);
-    Zotero.logError(new Error(`[Adobe OCR] Unexpected error: ${message}`));
+    logError(`Unexpected error: ${message}`, error instanceof Error ? error : undefined);
     showErrorProgress(message);
   }
 }
