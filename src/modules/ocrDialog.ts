@@ -63,9 +63,6 @@ export async function showOcrDialog(
   };
 
   const hasSkipped = nonPdfItems.length > 0;
-  const languageOptionsHtml = buildLanguageOptionsHtml(defaults.ocrLang);
-  const ocrTypeOptionsHtml = buildOcrTypeOptionsHtml(defaults.ocrType);
-
   // Row count: files label, files list, [skipped label, skipped list,]
   //            separator, output label, output radios, lang row, type row
   const totalRows = hasSkipped ? 9 : 7;
@@ -239,7 +236,11 @@ export async function showOcrDialog(
           "data-bind": "ocrLang",
           "data-prop": "value",
         },
-        properties: { innerHTML: languageOptionsHtml },
+        children: OCR_LANGUAGES.map((lang) => ({
+          tag: "option",
+          namespace: "html",
+          properties: { value: lang.code, textContent: lang.label },
+        })),
         styles: { flex: "1", fontSize: "12px" },
       },
     ],
@@ -270,7 +271,14 @@ export async function showOcrDialog(
           "data-bind": "ocrType",
           "data-prop": "value",
         },
-        properties: { innerHTML: ocrTypeOptionsHtml },
+        children: OCR_TYPES.map((type) => ({
+          tag: "option",
+          namespace: "html",
+          properties: {
+            value: type.value,
+            textContent: `${type.label} - ${type.description}`,
+          },
+        })),
         styles: { flex: "1", fontSize: "12px" },
       },
     ],
@@ -348,32 +356,6 @@ function buildSkippedListHtml(items: Zotero.Item[]): string {
   return items
     .map((item) => `<div>${escapeHtml(item.getDisplayTitle())}</div>`)
     .join("");
-}
-
-/**
- * Build HTML option elements for the language dropdown.
- *
- * @param selectedCode - The language code to pre-select
- * @returns HTML string of option elements
- */
-function buildLanguageOptionsHtml(selectedCode: string): string {
-  return OCR_LANGUAGES.map(
-    (lang) =>
-      `<option value="${escapeHtml(lang.code)}"${lang.code === selectedCode ? " selected" : ""}>${escapeHtml(lang.label)}</option>`,
-  ).join("");
-}
-
-/**
- * Build HTML option elements for the OCR type dropdown.
- *
- * @param selectedValue - The OCR type value to pre-select
- * @returns HTML string of option elements
- */
-function buildOcrTypeOptionsHtml(selectedValue: string): string {
-  return OCR_TYPES.map(
-    (type) =>
-      `<option value="${escapeHtml(type.value)}"${type.value === selectedValue ? " selected" : ""}>${escapeHtml(type.label)} - ${escapeHtml(type.description)}</option>`,
-  ).join("");
 }
 
 // ---------------------------------------------------------------------------
