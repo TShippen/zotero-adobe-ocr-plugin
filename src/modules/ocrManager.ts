@@ -33,6 +33,56 @@ function showErrorProgress(message: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// File-write helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate that a byte array looks like a PDF (non-empty with %PDF header).
+ *
+ * @param data - The bytes to validate.
+ * @returns True if data starts with the %PDF magic bytes.
+ */
+function isValidPdf(data: Uint8Array): boolean {
+  return (
+    data.byteLength > 0 &&
+    data[0] === 0x25 &&
+    data[1] === 0x50 &&
+    data[2] === 0x44 &&
+    data[3] === 0x46
+  );
+}
+
+/**
+ * Safely overwrite a file by writing to a temp path, validating, then moving.
+ *
+ * The original file is only replaced after the OCR result is validated as a
+ * non-empty PDF. If validation or the move fails, the original remains intact.
+ *
+ * @param path - The original file path to overwrite.
+ * @param ocrResult - The OCR-processed PDF bytes.
+ * @throws {Error} When the OCR result fails PDF validation.
+ */
+async function safeOverwrite(
+  path: string,
+  ocrResult: Uint8Array,
+): Promise<void> {
+  const tempPath = `${path}.ocr-tmp`;
+  await IOUtils.write(tempPath, ocrResult);
+
+  if (!isValidPdf(ocrResult)) {
+    await IOUtils.remove(tempPath, { ignoreAbsent: true });
+    throw new Error("OCR result failed validation: not a valid PDF");
+  }
+
+  try {
+    await IOUtils.move(tempPath, path);
+  } catch (moveError: unknown) {
+    await IOUtils.remove(tempPath, { ignoreAbsent: true });
+    throw moveError;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
@@ -181,13 +231,14 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
         progressItem.setText(getString("progress-saving"));
 
         if (result.overwrite) {
-          await IOUtils.write(path, ocrResult);
+          await safeOverwrite(path, ocrResult);
         } else {
           const dir = PathUtils.parent(path);
-          const basename = PathUtils.filename(path).replace(
-            /\.pdf$/i,
-            ".ocr.pdf",
-          );
+          const filename = PathUtils.filename(path);
+          const isPdf = /\.pdf$/i.test(filename);
+          const basename = isPdf
+            ? filename.replace(/\.pdf$/i, ".ocr.pdf")
+            : `${filename}.ocr.pdf`;
           const newPath = dir ? PathUtils.join(dir, basename) : basename;
           await IOUtils.write(newPath, ocrResult);
 
