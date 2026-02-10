@@ -20,7 +20,6 @@
       <html:input
         type="text"
         id="zotero-prefpane-__addonRef__-client-id"
-        preference="clientId"
         style="flex: 1"
       />
     </hbox>
@@ -33,9 +32,18 @@
       <html:input
         type="password"
         id="zotero-prefpane-__addonRef__-client-secret"
-        preference="clientSecret"
         style="flex: 1"
       />
+    </hbox>
+    <hbox align="center" style="margin-top: 8px; gap: 8px">
+      <html:button
+        id="zotero-prefpane-__addonRef__-validate-btn"
+        data-l10n-id="pref-validate-btn"
+      ></html:button>
+      <html:span
+        id="zotero-prefpane-__addonRef__-validate-status"
+        style="font-size: 12px"
+      ></html:span>
     </hbox>
   </groupbox>
 

@@ -1,9 +1,10 @@
 import { config } from "../package.json";
 
-import { clearCachedToken } from "./modules/adobeApi";
+import { clearCachedToken, getAccessToken } from "./modules/adobeApi";
 import { registerMenuItem, removeMenuItem } from "./modules/menu";
 import { getString, initLocale } from "./utils/locale";
 import { logInfo } from "./utils/log";
+import { getPref, setPref } from "./utils/prefs";
 import { createZToolkit } from "./utils/ztoolkit";
 
 async function onStartup() {
@@ -63,8 +64,77 @@ async function onNotify(
   // Notification handling reserved for future use
 }
 
-async function onPrefsEvent(_type: string, _data: { [key: string]: unknown }) {
-  // Preference event handling reserved for future use
+async function onPrefsEvent(type: string, data: { [key: string]: unknown }) {
+  if (type !== "load") {
+    return;
+  }
+
+  const win = data.window as Window;
+  const doc = win.document;
+  const ref = config.addonRef;
+
+  const clientIdInput = doc.getElementById(
+    `zotero-prefpane-${ref}-client-id`,
+  ) as HTMLInputElement | null;
+  const clientSecretInput = doc.getElementById(
+    `zotero-prefpane-${ref}-client-secret`,
+  ) as HTMLInputElement | null;
+  const validateBtn = doc.getElementById(
+    `zotero-prefpane-${ref}-validate-btn`,
+  ) as HTMLButtonElement | null;
+  const statusEl = doc.getElementById(
+    `zotero-prefpane-${ref}-validate-status`,
+  ) as HTMLSpanElement | null;
+
+  if (!clientIdInput || !clientSecretInput || !validateBtn || !statusEl) {
+    return;
+  }
+
+  // Populate from saved prefs
+  const savedId = getPref("clientId") as string;
+  const savedSecret = getPref("clientSecret") as string;
+  clientIdInput.value = savedId ?? "";
+  clientSecretInput.value = savedSecret ?? "";
+
+  // Show saved status if credentials already exist
+  if (savedId && savedSecret) {
+    statusEl.textContent = getString("pref-validate-saved");
+    statusEl.style.color = "";
+  }
+
+  validateBtn.addEventListener("click", async () => {
+    const clientId = clientIdInput.value.trim();
+    const clientSecret = clientSecretInput.value.trim();
+
+    if (!clientId || !clientSecret) {
+      statusEl.textContent = getString("pref-validate-empty");
+      statusEl.style.color = "#d32f2f";
+      return;
+    }
+
+    statusEl.textContent = getString("pref-validate-in-progress");
+    statusEl.style.color = "";
+    validateBtn.setAttribute("disabled", "true");
+
+    try {
+      clearCachedToken();
+      await getAccessToken(clientId, clientSecret);
+
+      setPref("clientId", clientId);
+      setPref("clientSecret", clientSecret);
+
+      statusEl.textContent = getString("pref-validate-success");
+      statusEl.style.color = "#2e7d32";
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      statusEl.textContent = getString("pref-validate-failed", {
+        args: { message },
+      });
+      statusEl.style.color = "#d32f2f";
+    } finally {
+      validateBtn.removeAttribute("disabled");
+    }
+  });
 }
 
 export default {
