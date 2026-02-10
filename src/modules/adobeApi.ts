@@ -446,7 +446,6 @@ async function submitOcrJob(
       body: JSON.stringify({
         assetID,
         ocrLang: options.ocrLang,
-        ocrType: options.ocrType,
       }),
     });
   } catch (error: unknown) {
@@ -468,6 +467,15 @@ async function submitOcrJob(
   }
 
   if (response.status !== 201) {
+    let responseBody = "";
+    try {
+      responseBody = await response.text();
+    } catch {
+      // ignore
+    }
+    logDebug(
+      `OCR submit failed (${response.status}): ${responseBody}`,
+    );
     throw new AdobeApiError({
       message: `OCR submit returned HTTP ${response.status}: ${response.statusText}`,
       statusCode: response.status,

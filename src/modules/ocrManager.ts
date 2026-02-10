@@ -29,9 +29,7 @@ function showErrorProgress(message: string): void {
     "chrome://zotero/skin/cross.png",
     message,
   );
-  progressItem.setIcon("chrome://zotero/skin/cross.png");
   progressWin.show();
-  progressWin.startCloseTimer(4000);
 }
 
 // ---------------------------------------------------------------------------
@@ -269,8 +267,8 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
 
         // Step 10g: Show success
         progressItem.setText(getString("progress-done"));
-        progressItem.setIcon("chrome://zotero/skin/tick.png");
-        progressWin.startCloseTimer(4000);
+        progressItem.setProgress(100);
+        // closeOnClick: true lets the user dismiss by clicking
       } catch (error: unknown) {
         const isApiError = error instanceof AdobeApiError;
         const technicalMsg =
@@ -286,9 +284,9 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
           args: { message: userMsg },
         });
         if (progressWin !== null && progressItem !== null) {
-          progressItem.setIcon("chrome://zotero/skin/cross.png");
+          progressItem.setError();
           progressItem.setText(errorText);
-          progressWin.startCloseTimer(4000);
+          // closeOnClick: true lets the user dismiss by clicking
         } else {
           showErrorProgress(errorText);
         }
