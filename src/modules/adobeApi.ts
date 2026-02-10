@@ -170,7 +170,7 @@ export async function getAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`,
+      body: `client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
