@@ -10,7 +10,10 @@
 // ---------------------------------------------------------------------------
 
 /** Supported OCR language locales for Adobe PDF Services. */
-export const OCR_LANGUAGES: ReadonlyArray<{ readonly code: string; readonly label: string }> = [
+export const OCR_LANGUAGES: ReadonlyArray<{
+  readonly code: string;
+  readonly label: string;
+}> = [
   { code: "en-US", label: "English (US)" },
   { code: "en-GB", label: "English (GB)" },
   { code: "de-DE", label: "German" },
@@ -174,7 +177,8 @@ export async function getAccessToken(
     throw new AdobeApiError({
       message: `Token request failed: ${message}`,
       step: "authentication",
-      userMessage: "Unable to connect to Adobe authentication service. Check your network connection.",
+      userMessage:
+        "Unable to connect to Adobe authentication service. Check your network connection.",
     });
   }
 
@@ -183,7 +187,8 @@ export async function getAccessToken(
       message: `Token request returned HTTP ${response.status}: ${response.statusText}`,
       statusCode: response.status,
       step: "authentication",
-      userMessage: "Authentication failed. Verify your Adobe API credentials in the preferences.",
+      userMessage:
+        "Authentication failed. Verify your Adobe API credentials in the preferences.",
     });
   }
 
@@ -195,7 +200,8 @@ export async function getAccessToken(
     throw new AdobeApiError({
       message: `Failed to parse token response: ${message}`,
       step: "authentication",
-      userMessage: "Received an unexpected response from Adobe authentication service.",
+      userMessage:
+        "Received an unexpected response from Adobe authentication service.",
     });
   }
 
@@ -306,10 +312,7 @@ export async function ocrPdf(
 
   // Step 5: Download result
   onProgress?.("downloading");
-  const result = await downloadResult(downloadUri);
-
-  // Step 6: Return the Uint8Array
-  return result;
+  return downloadResult(downloadUri);
 }
 
 // ---------------------------------------------------------------------------
@@ -336,7 +339,11 @@ async function requestUploadUri(
       body: JSON.stringify({ mediaType: "application/pdf" }),
     });
   } catch (error: unknown) {
-    throw wrapNetworkError(error, "upload-request", "Unable to request upload URI from Adobe.");
+    throw wrapNetworkError(
+      error,
+      "upload-request",
+      "Unable to request upload URI from Adobe.",
+    );
   }
 
   if (response.status === 401) {
@@ -344,7 +351,8 @@ async function requestUploadUri(
       message: `Upload URI request returned 401 Unauthorized`,
       statusCode: 401,
       step: "upload-request",
-      userMessage: "Authentication has expired. Please try again to re-authenticate.",
+      userMessage:
+        "Authentication has expired. Please try again to re-authenticate.",
     });
   }
 
@@ -358,14 +366,14 @@ async function requestUploadUri(
   }
 
   try {
-    const data = (await response.json()) as unknown as AssetUploadResponse;
-    return data;
+    return (await response.json()) as unknown as AssetUploadResponse;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     throw new AdobeApiError({
       message: `Failed to parse upload URI response: ${message}`,
       step: "upload-request",
-      userMessage: "Received an unexpected response when requesting upload URI.",
+      userMessage:
+        "Received an unexpected response when requesting upload URI.",
     });
   }
 }
@@ -377,7 +385,10 @@ async function requestUploadUri(
  * @param pdfData - Raw PDF file contents.
  * @throws {AdobeApiError} When the upload fails or returns a non-OK status.
  */
-async function uploadPdf(uploadUri: string, pdfData: Uint8Array): Promise<void> {
+async function uploadPdf(
+  uploadUri: string,
+  pdfData: Uint8Array,
+): Promise<void> {
   let response: Response;
   try {
     response = await fetch(uploadUri, {
@@ -429,7 +440,11 @@ async function submitOcrJob(
       }),
     });
   } catch (error: unknown) {
-    throw wrapNetworkError(error, "ocr-submit", "Unable to submit OCR job to Adobe.");
+    throw wrapNetworkError(
+      error,
+      "ocr-submit",
+      "Unable to submit OCR job to Adobe.",
+    );
   }
 
   if (response.status === 401) {
@@ -437,7 +452,8 @@ async function submitOcrJob(
       message: `OCR submit returned 401 Unauthorized`,
       statusCode: 401,
       step: "ocr-submit",
-      userMessage: "Authentication has expired. Please try again to re-authenticate.",
+      userMessage:
+        "Authentication has expired. Please try again to re-authenticate.",
     });
   }
 
@@ -456,7 +472,8 @@ async function submitOcrJob(
       message: "OCR submit response missing Location header",
       statusCode: response.status,
       step: "ocr-submit",
-      userMessage: "Adobe returned an unexpected response after submitting the OCR job.",
+      userMessage:
+        "Adobe returned an unexpected response after submitting the OCR job.",
     });
   }
 
@@ -488,7 +505,11 @@ async function pollForCompletion(
         },
       });
     } catch (error: unknown) {
-      throw wrapNetworkError(error, "ocr-processing", "Lost connection while waiting for OCR results.");
+      throw wrapNetworkError(
+        error,
+        "ocr-processing",
+        "Lost connection while waiting for OCR results.",
+      );
     }
 
     if (response.status === 401) {
@@ -496,7 +517,8 @@ async function pollForCompletion(
         message: `Poll request returned 401 Unauthorized`,
         statusCode: 401,
         step: "ocr-processing",
-        userMessage: "Authentication has expired. Please try again to re-authenticate.",
+        userMessage:
+          "Authentication has expired. Please try again to re-authenticate.",
       });
     }
 
@@ -517,7 +539,8 @@ async function pollForCompletion(
       throw new AdobeApiError({
         message: `Failed to parse poll response: ${message}`,
         step: "ocr-processing",
-        userMessage: "Received an unexpected response while checking OCR status.",
+        userMessage:
+          "Received an unexpected response while checking OCR status.",
       });
     }
 
@@ -527,7 +550,8 @@ async function pollForCompletion(
         throw new AdobeApiError({
           message: "Poll response status is 'done' but no downloadUri found",
           step: "ocr-processing",
-          userMessage: "OCR completed but the download link was missing from the response.",
+          userMessage:
+            "OCR completed but the download link was missing from the response.",
         });
       }
       return downloadUri;
@@ -549,7 +573,8 @@ async function pollForCompletion(
   throw new AdobeApiError({
     message: `OCR job did not complete within ${MAX_POLL_ATTEMPTS} polling attempts`,
     step: "ocr-timeout",
-    userMessage: "OCR processing timed out. The PDF may be too large or Adobe services may be busy.",
+    userMessage:
+      "OCR processing timed out. The PDF may be too large or Adobe services may be busy.",
   });
 }
 
@@ -567,7 +592,11 @@ async function downloadResult(downloadUri: string): Promise<Uint8Array> {
       method: "GET",
     });
   } catch (error: unknown) {
-    throw wrapNetworkError(error, "download", "Unable to download the processed PDF.");
+    throw wrapNetworkError(
+      error,
+      "download",
+      "Unable to download the processed PDF.",
+    );
   }
 
   if (!response.ok) {

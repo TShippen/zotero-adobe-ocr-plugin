@@ -29,13 +29,16 @@ const MENU_ITEM_ID = "zotero-adobe-ocr-menuitem";
  * @param window - The Zotero main window
  */
 export function registerMenuItem(window: Window): void {
-  const addonInstance =
-    Zotero[config.addonInstance as keyof typeof Zotero] as
+  const addonInstance = Zotero[config.addonInstance as keyof typeof Zotero] as
     | { data: { ztoolkit: ZToolkit } }
     | undefined;
 
   if (!addonInstance) {
-    Zotero.logError(new Error("[Adobe OCR] Could not find addon instance for menu registration"));
+    Zotero.logError(
+      new Error(
+        "[Adobe OCR] Could not find addon instance for menu registration",
+      ),
+    );
     return;
   }
 

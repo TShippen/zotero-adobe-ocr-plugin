@@ -179,14 +179,11 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
         progressWin.startCloseTimer(4000);
       } catch (error: unknown) {
         // Step 11: Show failure for this item
-        const message =
-          error instanceof Error ? error.message : String(error);
+        const message = error instanceof Error ? error.message : String(error);
         Zotero.logError(
           new Error(`[Adobe OCR] Failed to OCR "${itemTitle}": ${message}`),
         );
-        showErrorProgress(
-          getString("error-ocr-failed", { args: { message } }),
-        );
+        showErrorProgress(getString("error-ocr-failed", { args: { message } }));
       }
     }
   } catch (error: unknown) {
