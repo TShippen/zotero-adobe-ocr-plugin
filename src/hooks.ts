@@ -1,6 +1,10 @@
 import { config } from "../package.json";
 
-import { clearCachedToken, getAccessToken } from "./modules/adobeApi";
+import {
+  AdobeApiError,
+  clearCachedToken,
+  getAccessToken,
+} from "./modules/adobeApi";
 import { registerMenuItem, removeMenuItem } from "./modules/menu";
 import { getString, initLocale } from "./utils/locale";
 import { logInfo } from "./utils/log";
@@ -126,7 +130,12 @@ async function onPrefsEvent(type: string, data: { [key: string]: unknown }) {
       statusEl.textContent = getString("pref-validate-success");
       statusEl.style.color = "#2e7d32";
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message =
+        error instanceof AdobeApiError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : String(error);
       statusEl.textContent = getString("pref-validate-failed", {
         args: { message },
       });

@@ -71,8 +71,8 @@ export const OCR_TYPES: ReadonlyArray<{
 /** Base URL for the Adobe PDF Services REST API. */
 export const API_BASE = "https://pdf-services-ue1.adobe.io";
 
-/** URL for obtaining an access token from Adobe PDF Services. */
-export const TOKEN_URL = "https://pdf-services-ue1.adobe.io/token";
+/** URL for obtaining an access token via Adobe IMS (OAuth Server-to-Server). */
+export const TOKEN_URL = "https://ims-na1.adobelogin.com/ims/token/v3";
 
 /** Milliseconds to wait between polling attempts for job completion. */
 export const POLL_INTERVAL_MS = 3000;
@@ -174,7 +174,7 @@ export async function getAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
+      body: `client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials&scope=openid,AdobeID,DCAPI`,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

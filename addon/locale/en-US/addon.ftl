@@ -18,3 +18,9 @@ error-no-file = Could not locate the PDF file on disk.
 error-no-pdfs = No PDF attachments found in the selection.
 
 pref-title = Adobe OCR
+
+pref-validate-success = Credentials verified and saved.
+pref-validate-failed = Validation failed: { $message }
+pref-validate-empty = Please enter both Client ID and Client Secret.
+pref-validate-in-progress = Validating...
+pref-validate-saved = Credentials saved.
