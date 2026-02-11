@@ -7,7 +7,7 @@ import {
 } from "./modules/adobeApi";
 import { registerMenuItem, removeMenuItem } from "./modules/menu";
 import { getString, initLocale } from "./utils/locale";
-import { logInfo } from "./utils/log";
+import { logError, logInfo } from "./utils/log";
 import { getPref, setPref } from "./utils/prefs";
 import { createZToolkit } from "./utils/ztoolkit";
 
@@ -136,6 +136,10 @@ async function onPrefsEvent(type: string, data: { [key: string]: unknown }) {
           : error instanceof Error
             ? error.message
             : String(error);
+      logError(
+        `Credential validation failed: ${message}`,
+        error instanceof Error ? error : undefined,
+      );
       statusEl.textContent = getString("pref-validate-failed", {
         args: { message },
       });
