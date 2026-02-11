@@ -455,6 +455,7 @@ async function submitOcrJob(
       body: JSON.stringify({
         assetID,
         ocrLang: options.ocrLang,
+        ocrType: options.ocrType,
       }),
     });
   } catch (error: unknown) {

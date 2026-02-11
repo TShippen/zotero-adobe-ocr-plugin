@@ -339,14 +339,13 @@ export async function ocrSelectedItems(_window: Window): Promise<void> {
         continue;
       }
 
-      // Read file
-      const data = await IOUtils.read(path);
-
-      // Update status and start timer
-      dialog.setFileStatus(i, "uploading");
-      dialog.startFileTimer(i);
-
       try {
+        // Read file
+        const data = await IOUtils.read(path);
+
+        // Update status and start timer
+        dialog.setFileStatus(i, "uploading");
+        dialog.startFileTimer(i);
         // Build progress callback
         const onProgress = (status: string): void => {
           switch (status) {

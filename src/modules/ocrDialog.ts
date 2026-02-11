@@ -688,6 +688,7 @@ export async function openUnifiedDialog(
   // --- Cancel handler state ---
   let cancelHandler: (() => void) | null = null;
   let isProcessingPhase = false;
+  let isPostProcessing = false;
 
   // --- Close promise (resolves when the dialog window unloads) ---
   const closePromise = new Promise<void>((resolve) => {
@@ -773,12 +774,12 @@ export async function openUnifiedDialog(
             event.preventDefault();
             event.stopPropagation();
 
-            if (!isProcessingPhase) {
-              // Phase 1: cancel closes the dialog, resolves with null
+            if (!isProcessingPhase || isPostProcessing) {
+              // Options phase or post-processing: close the dialog
               resolve(null);
               win.close();
             } else {
-              // Phase 2: invoke the registered cancel handler
+              // Processing phase: invoke the registered cancel handler
               cancelHandler?.();
             }
           });
@@ -980,6 +981,7 @@ export async function openUnifiedDialog(
     },
 
     showCloseButton(): void {
+      isPostProcessing = true;
       const cancelBtn = doc.getElementById(
         "ocr-btn-cancel",
       ) as HTMLButtonElement | null;
