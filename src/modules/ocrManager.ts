@@ -14,7 +14,7 @@ import { logDebug, logError, logInfo } from "../utils/log";
 import { getPref } from "../utils/prefs";
 
 // ---------------------------------------------------------------------------
-// File-write helpers
+// UI helpers
 // ---------------------------------------------------------------------------
 
 /**
@@ -284,7 +284,7 @@ export async function ocrSelectedItems(_window: Window): Promise<void> {
       promise: null,
     };
 
-    dialog.onCancel(() => {
+    dialog.onCancel(async () => {
       // Pause everything immediately
       dialog.pauseTimers();
       cancel.requested = true;
@@ -295,14 +295,13 @@ export async function ocrSelectedItems(_window: Window): Promise<void> {
       });
 
       // Show the cancel confirmation prompt
-      showCancelPrompt().then((choice) => {
-        cancel.behavior = choice;
-        if (choice === "resume") {
-          cancel.requested = false;
-          dialog.resumeTimers();
-        }
-        cancel.promiseResolve?.();
-      });
+      const choice = await showCancelPrompt();
+      cancel.behavior = choice;
+      if (choice === "resume") {
+        cancel.requested = false;
+        dialog.resumeTimers();
+      }
+      cancel.promiseResolve?.();
     });
 
     // Step 12: Process each PDF sequentially
