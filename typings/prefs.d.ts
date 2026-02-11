@@ -11,6 +11,7 @@ declare namespace _ZoteroTypes {
       "clientSecret": string;
       "ocrLang": string;
       "ocrType": string;
+      "cancelBehavior": string;
     };
   }
 }

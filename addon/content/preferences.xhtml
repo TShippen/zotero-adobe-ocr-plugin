@@ -102,11 +102,30 @@
         <menupopup>
           <menuitem
             data-l10n-id="pref-ocr-type-exact"
-            value="SEARCHABLE_IMAGE_EXACT"
+            value="searchable_image_exact"
           />
           <menuitem
             data-l10n-id="pref-ocr-type-searchable"
-            value="SEARCHABLE_IMAGE"
+            value="searchable_image"
+          />
+        </menupopup>
+      </menulist>
+    </hbox>
+    <hbox align="center">
+      <html:label
+        for="zotero-prefpane-__addonRef__-cancel-behavior"
+        data-l10n-id="pref-cancel-behavior"
+        style="min-width: 100px"
+      ></html:label>
+      <menulist id="zotero-prefpane-__addonRef__-cancel-behavior" preference="cancelBehavior">
+        <menupopup>
+          <menuitem
+            data-l10n-id="pref-cancel-complete"
+            value="complete"
+          />
+          <menuitem
+            data-l10n-id="pref-cancel-abandon"
+            value="abandon"
           />
         </menupopup>
       </menulist>

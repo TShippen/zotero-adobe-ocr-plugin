@@ -57,12 +57,12 @@ export const OCR_TYPES: ReadonlyArray<{
   readonly description: string;
 }> = [
   {
-    value: "SEARCHABLE_IMAGE_EXACT",
+    value: "searchable_image_exact",
     label: "Exact",
     description: "Preserve original image untouched",
   },
   {
-    value: "SEARCHABLE_IMAGE",
+    value: "searchable_image",
     label: "Searchable Image",
     description: "May deskew and clean the image",
   },

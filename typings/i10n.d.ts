@@ -3,6 +3,14 @@
 /* eslint-disable */
 // @ts-nocheck
 export type FluentMessageId =
+  | 'btn-cancel'
+  | 'btn-close'
+  | 'btn-start-ocr'
+  | 'cancel-btn-abandon'
+  | 'cancel-btn-complete'
+  | 'cancel-btn-resume'
+  | 'cancel-prompt-message'
+  | 'cancel-prompt-title'
   | 'error-auth-failed'
   | 'error-download-failed'
   | 'error-no-credentials'
@@ -11,7 +19,14 @@ export type FluentMessageId =
   | 'error-not-pdf'
   | 'error-ocr-failed'
   | 'error-upload-failed'
+  | 'footer-cancelled'
+  | 'footer-complete-all'
+  | 'footer-complete-some'
+  | 'footer-processing'
   | 'menuitem-ocr'
+  | 'pref-cancel-abandon'
+  | 'pref-cancel-behavior'
+  | 'pref-cancel-complete'
   | 'pref-client-id'
   | 'pref-client-secret'
   | 'pref-credentials-description'
@@ -35,4 +50,9 @@ export type FluentMessageId =
   | 'progress-processing'
   | 'progress-saving'
   | 'progress-title'
-  | 'progress-uploading';
+  | 'progress-uploading'
+  | 'status-cancelled'
+  | 'status-complete'
+  | 'status-error'
+  | 'status-not-started'
+  | 'status-waiting';

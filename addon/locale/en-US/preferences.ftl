@@ -19,4 +19,10 @@ pref-ocr-type-exact =
 pref-ocr-type-searchable =
     .label = Searchable Image (may deskew/clean)
 
+pref-cancel-behavior = When cancelling
+pref-cancel-complete =
+    .label = Complete current file before stopping
+pref-cancel-abandon =
+    .label = Abandon immediately
+
 pref-help = { $name } v{ $version }
