@@ -4,9 +4,9 @@ import { FluentMessageId } from "../../typings/i10n";
 export { initLocale, getString };
 
 /**
- * Initialize locale data
+ * Initialize the Fluent localization system for the plugin.
  */
-function initLocale() {
+function initLocale(): void {
   const l10n = new (
     typeof Localization === "undefined"
       ? ztoolkit.getGlobal("Localization")
@@ -41,9 +41,19 @@ function getString(localString: FluentMessageId): string;
 function getString(localString: FluentMessageId, branch: string): string;
 function getString(
   localeString: FluentMessageId,
-  options: { branch?: string | undefined; args?: Record<string, unknown> },
+  options: {
+    branch?: string | undefined;
+    args?: Record<string, string | number | null>;
+  },
 ): string;
-function getString(...inputs: any[]) {
+function getString(
+  ...inputs: [
+    FluentMessageId,
+  ] | [
+    FluentMessageId,
+    string | { branch?: string; args?: Record<string, string | number | null> },
+  ]
+): string {
   if (inputs.length === 1) {
     return _getString(inputs[0]);
   } else if (inputs.length === 2) {
@@ -65,9 +75,16 @@ interface Pattern {
   }> | null;
 }
 
+/**
+ * Internal implementation for locale string retrieval.
+ *
+ * @param localeString - The Fluent message ID to look up.
+ * @param options - Optional branch selector and/or formatting arguments.
+ * @returns The resolved locale string, or the prefixed key as a fallback.
+ */
 function _getString(
   localeString: FluentMessageId,
-  options: { branch?: string | undefined; args?: Record<string, unknown> } = {},
+  options: { branch?: string; args?: Record<string, string | number | null> } = {},
 ): string {
   const localStringWithPrefix = `${config.addonRef}-${localeString}`;
   const { branch, args } = options;

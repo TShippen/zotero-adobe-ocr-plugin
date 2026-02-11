@@ -234,7 +234,7 @@ export function clearCachedToken(): void {
 export interface OcrOptions {
   /** OCR language locale code (e.g. "en-US"). */
   readonly ocrLang: string;
-  /** OCR output type (e.g. "SEARCHABLE_IMAGE" or "SEARCHABLE_IMAGE_EXACT"). */
+  /** OCR output type (e.g. "searchable_image" or "searchable_image_exact"). */
   readonly ocrType: string;
 }
 

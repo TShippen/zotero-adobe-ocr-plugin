@@ -3,7 +3,12 @@ import { config } from "../../package.json";
 
 export { createZToolkit };
 
-function createZToolkit() {
+/**
+ * Create and configure a ZoteroToolkit instance for the plugin.
+ *
+ * @returns A configured ZoteroToolkit instance.
+ */
+function createZToolkit(): ZoteroToolkit {
   const _ztoolkit = new ZoteroToolkit();
   initZToolkit(_ztoolkit);
   return _ztoolkit;
