@@ -509,6 +509,7 @@ async function submitOcrJob(
  * @param clientId - Adobe PDF Services client ID.
  * @param accessToken - A valid access token.
  * @param pollUrl - The polling URL from the Location header in step 3.
+ * @param onProgress - Optional callback invoked each poll with status and elapsed seconds.
  * @returns The download URI for the processed PDF.
  * @throws {AdobeApiError} When polling fails, the job fails, or polling times out.
  */
