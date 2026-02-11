@@ -13,6 +13,7 @@ import { DialogHelper } from "zotero-plugin-toolkit";
 import { OCR_LANGUAGES, OCR_TYPES } from "./adobeApi";
 
 import { getString } from "../utils/locale";
+import { logDebug } from "../utils/log";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -665,6 +666,7 @@ export async function openUnifiedDialog(
     throw new Error("Dialog window failed to open");
   }
   const doc = win.document;
+  logDebug(`Dialog opened with ${pdfItems.length} PDF(s), ${nonPdfItems.length} skipped`);
 
   // --- Set default dropdown values from preferences ---
   const langSelect = doc.getElementById(
@@ -765,6 +767,7 @@ export async function openUnifiedDialog(
             ) as HTMLSelectElement | null;
             const ocrType = typeEl?.value ?? defaults.ocrType;
 
+            logDebug(`Start OCR clicked: lang=${ocrLang}, type=${ocrType}, overwrite=${overwrite}`);
             resolve({ overwrite, ocrLang, ocrType });
           });
         }
@@ -776,6 +779,7 @@ export async function openUnifiedDialog(
 
             if (!isProcessingPhase || isPostProcessing) {
               // Options phase or post-processing: close the dialog
+              logDebug("Dialog cancelled by user");
               resolve(null);
               win.close();
             } else {
@@ -793,6 +797,7 @@ export async function openUnifiedDialog(
     },
 
     beginProcessing(): void {
+      logDebug("Transitioning dialog to processing phase");
       isProcessingPhase = true;
 
       // Disable the Start OCR button
@@ -966,6 +971,7 @@ export async function openUnifiedDialog(
     },
 
     showSummary(text: string): void {
+      logDebug(`Showing summary: ${text}`);
       // Freeze overall timer
       if (overallTimer.intervalId !== null) {
         overallTimer.accumulatedMs += Date.now() - overallTimer.startTime;
@@ -1003,6 +1009,7 @@ export async function openUnifiedDialog(
     },
 
     destroy(): void {
+      logDebug("Dialog destroyed, clearing timers");
       // Clear all per-file timer intervals
       for (const timer of fileTimers) {
         if (timer.intervalId !== null) {
