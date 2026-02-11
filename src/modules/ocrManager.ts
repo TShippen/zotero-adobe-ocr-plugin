@@ -2,148 +2,21 @@
  * OCR manager module -- the orchestrator that bridges Zotero and the Adobe API.
  *
  * Reads the selected items, filters for PDFs, gathers credentials and user
- * preferences, presents the pre-flight dialog, and runs the OCR pipeline
- * for each selected PDF.
+ * preferences, presents the unified OCR dialog, and runs the OCR pipeline
+ * for each selected PDF with cancellation support.
  */
 
-import { DialogHelper } from "zotero-plugin-toolkit";
-
 import { AdobeApiError, getAccessToken, ocrPdf } from "./adobeApi";
-import { showOcrDialog } from "./ocrDialog";
+import { openUnifiedDialog } from "./ocrDialog";
 
 import { getString } from "../utils/locale";
 import { logDebug, logError, logInfo } from "../utils/log";
 import { getPref } from "../utils/prefs";
 
 // ---------------------------------------------------------------------------
-// Progress dialog helpers
-// ---------------------------------------------------------------------------
-
-/** Handles returned by {@link openProgressDialog} for controlling the dialog. */
-interface ProgressDialogHandle {
-  /** Update the status line text. */
-  updateStatus: (text: string) => void;
-  /** Mark as success: update status, show dismiss notice, enable Close. */
-  showSuccess: (text: string) => void;
-  /** Mark as error: update status in red, show dismiss notice, enable Close. */
-  showError: (text: string) => void;
-  /** Resolves when the user closes the dialog. */
-  waitForClose: () => Promise<void>;
-}
-
-/**
- * Open a DialogHelper progress dialog for a single OCR item.
- *
- * The dialog shows the file name and a status line. The Close button is
- * disabled while processing and enabled when {@link showSuccess} or
- * {@link showError} is called.
- *
- * @param itemTitle - Display title of the PDF being processed
- * @returns Control handle for updating and closing the dialog
- */
-async function openProgressDialog(
-  itemTitle: string,
-): Promise<ProgressDialogHandle> {
-  const dialogData: Record<string, unknown> = {};
-  const dialog = new DialogHelper(3, 1);
-
-  // Row 0: File name
-  dialog.addCell(0, 0, {
-    tag: "label",
-    namespace: "html",
-    properties: { textContent: itemTitle },
-    styles: {
-      fontWeight: "bold",
-      fontSize: "13px",
-      marginBottom: "8px",
-      whiteSpace: "normal",
-      wordBreak: "break-word",
-    },
-  });
-
-  // Row 1: Status text (updated dynamically)
-  dialog.addCell(1, 0, {
-    tag: "label",
-    namespace: "html",
-    id: "ocr-progress-status",
-    properties: { textContent: getString("progress-uploading") },
-    styles: { fontSize: "12px", marginBottom: "4px" },
-  });
-
-  // Row 2: Dismiss notice (shown when done)
-  dialog.addCell(2, 0, {
-    tag: "label",
-    namespace: "html",
-    id: "ocr-progress-notice",
-    properties: { textContent: "" },
-    styles: { fontSize: "11px", color: "#888", fontStyle: "italic" },
-  });
-
-  dialog.addButton("Close", "close");
-  dialog.setDialogData(dialogData);
-  dialog.open(getString("progress-title"), {
-    centerscreen: true,
-    fitContent: true,
-    resizable: false,
-  });
-
-  // Wait for dialog window to be ready
-  const loadLock = dialogData.loadLock as
-    | { promise: Promise<void> }
-    | undefined;
-  await loadLock?.promise;
-
-  const win = dialog.window;
-  const closeBtn = win?.document.querySelector("button") as
-    | HTMLButtonElement
-    | null;
-  if (closeBtn) {
-    closeBtn.disabled = true;
-  }
-
-  const updateStatus = (text: string): void => {
-    const el = win?.document.getElementById("ocr-progress-status");
-    if (el) {
-      el.textContent = text;
-    }
-  };
-
-  const enableClose = (notice: string): void => {
-    const noticeEl = win?.document.getElementById("ocr-progress-notice");
-    if (noticeEl) {
-      noticeEl.textContent = notice;
-    }
-    if (closeBtn) {
-      closeBtn.disabled = false;
-    }
-  };
-
-  const showSuccess = (text: string): void => {
-    updateStatus(text);
-    enableClose(getString("progress-click-to-close"));
-  };
-
-  const showError = (text: string): void => {
-    const el = win?.document.getElementById("ocr-progress-status");
-    if (el) {
-      el.textContent = text;
-      (el as HTMLElement).style.color = "#d32f2f";
-    }
-    enableClose(getString("progress-click-to-close"));
-  };
-
-  const waitForClose = async (): Promise<void> => {
-    const unloadLock = dialogData.unloadLock as
-      | { promise: Promise<void> }
-      | undefined;
-    await unloadLock?.promise;
-  };
-
-  return { updateStatus, showSuccess, showError, waitForClose };
-}
-
-// ---------------------------------------------------------------------------
 // File-write helpers
+// ---------------------------------------------------------------------------
+
 /**
  * Show a simple error alert for pre-processing errors.
  *
@@ -207,19 +80,72 @@ async function safeOverwrite(
 }
 
 // ---------------------------------------------------------------------------
+// Cancel confirmation prompt
+// ---------------------------------------------------------------------------
+
+/**
+ * Show a cancel confirmation prompt during OCR processing.
+ *
+ * Displays a three-button prompt asking the user whether to complete
+ * the current file, abandon immediately, or resume processing. The
+ * default button is determined by the cancelBehavior preference.
+ *
+ * @returns The user's choice: "complete", "abandon", or "resume"
+ */
+async function showCancelPrompt(): Promise<"complete" | "abandon" | "resume"> {
+  const defaultBehavior = getPref("cancelBehavior") as string;
+
+  const ps = Services.prompt;
+   
+  const flags =
+    ps.BUTTON_POS_0! * ps.BUTTON_TITLE_IS_STRING! +
+    ps.BUTTON_POS_1! * ps.BUTTON_TITLE_IS_STRING! +
+    ps.BUTTON_POS_2! * ps.BUTTON_TITLE_IS_STRING!;
+
+  // Set the default button based on the preference
+  const defaultButton =
+    defaultBehavior === "abandon"
+      ? ps.BUTTON_POS_1_DEFAULT!
+      : ps.BUTTON_POS_0_DEFAULT!;
+   
+
+  const result = ps.confirmEx(
+    Zotero.getMainWindow() as unknown as mozIDOMWindowProxy,
+    getString("cancel-prompt-title"),
+    getString("cancel-prompt-message"),
+    flags + defaultButton,
+    getString("cancel-btn-complete"),
+    getString("cancel-btn-abandon"),
+    getString("cancel-btn-resume"),
+    "",
+    { value: false },
+  );
+
+  switch (result) {
+    case 0:
+      return "complete";
+    case 1:
+      return "abandon";
+    default:
+      return "resume";
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
 /**
  * OCR the selected items in Zotero.
  *
- * Gathers selected PDF attachments, prompts the user with a pre-flight dialog
- * for OCR options, authenticates with Adobe, and processes each PDF through the
- * Adobe PDF Services OCR pipeline.
+ * Gathers selected PDF attachments, prompts the user with the unified OCR
+ * dialog for options and progress, authenticates with Adobe, and processes
+ * each PDF through the Adobe PDF Services OCR pipeline. Supports cancellation
+ * with three behaviors: complete current file, abandon immediately, or resume.
  *
- * @param window - The Zotero main window
+ * @param _window - The Zotero main window (reserved for future use)
  */
-export async function ocrSelectedItems(window: Window): Promise<void> {
+export async function ocrSelectedItems(_window: Window): Promise<void> {
   try {
     // Step 1: Get selected items
     const zoteroPane = Zotero.getActiveZoteroPane();
@@ -288,14 +214,16 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
     const ocrLang = getPref("ocrLang") as string;
     const ocrType = getPref("ocrType") as string;
 
-    // Step 7: Show pre-flight dialog
-    const result = await showOcrDialog(window, pdfItems, nonPdfItems, {
+    // Step 7: Open unified dialog
+    const dialog = await openUnifiedDialog(pdfItems, nonPdfItems, {
       ocrLang,
       ocrType,
     });
 
-    // Step 8: If cancelled, return
+    // Step 8: Wait for user to click Start OCR
+    const result = await dialog.waitForStart();
     if (result === null) {
+      dialog.destroy();
       return;
     }
 
@@ -303,54 +231,140 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
       `Starting OCR: ${pdfItems.length} PDF(s), mode=${result.overwrite ? "overwrite" : "new"}, lang=${result.ocrLang}, type=${result.ocrType}`,
     );
 
-    // Step 9: Get access token
-    const accessToken = await getAccessToken(clientId, clientSecret);
-    logDebug("Access token acquired");
+    // Step 9: Transition to processing phase
+    dialog.beginProcessing();
+    dialog.startOverallTimer();
 
-    // Step 10: Process each PDF
-    for (const item of pdfItems) {
+    // Step 10: Get access token
+    let accessToken: string;
+    try {
+      accessToken = await getAccessToken(clientId, clientSecret);
+      logDebug("Access token acquired");
+    } catch (error: unknown) {
+      // Auth failure -- show error in footer, mark all as error
+      const msg =
+        error instanceof AdobeApiError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : String(error);
+      logError(
+        `Authentication failed: ${msg}`,
+        error instanceof Error ? error : undefined,
+      );
+      for (let i = 0; i < pdfItems.length; i++) {
+        dialog.setFileStatus(i, "error", msg);
+      }
+      dialog.showSummary(
+        getString("footer-complete-some", {
+          args: {
+            completed: "0",
+            total: String(pdfItems.length),
+            elapsed: dialog.getOverallElapsed(),
+          },
+        }),
+      );
+      dialog.showCloseButton();
+      await dialog.waitForClose();
+      dialog.destroy();
+      return;
+    }
+
+    // Step 11: Set up cancellation state
+    // Use an object so TypeScript does not narrow the mutable fields.
+    const cancel: {
+      requested: boolean;
+      behavior: "complete" | "abandon" | "resume";
+      promiseResolve: (() => void) | null;
+      promise: Promise<void> | null;
+    } = {
+      requested: false,
+      behavior: "resume",
+      promiseResolve: null,
+      promise: null,
+    };
+
+    dialog.onCancel(() => {
+      // Pause everything immediately
+      dialog.pauseTimers();
+      cancel.requested = true;
+
+      // Create a promise that resolves when the user makes their choice
+      cancel.promise = new Promise<void>((resolve) => {
+        cancel.promiseResolve = resolve;
+      });
+
+      // Show the cancel confirmation prompt
+      showCancelPrompt().then((choice) => {
+        cancel.behavior = choice;
+        if (choice === "resume") {
+          cancel.requested = false;
+          dialog.resumeTimers();
+        }
+        cancel.promiseResolve?.();
+      });
+    });
+
+    // Step 12: Process each PDF sequentially
+    let completedCount = 0;
+    let cancelledEarly = false;
+
+    for (let i = 0; i < pdfItems.length; i++) {
+      // Check if cancel was requested between files
+      if (cancel.requested) {
+        // Wait for the user to make their cancel choice
+        if (cancel.promise) {
+          await cancel.promise;
+        }
+
+        if (cancel.behavior !== "resume") {
+          // Mark remaining files as cancelled
+          for (let j = i; j < pdfItems.length; j++) {
+            dialog.setFileStatus(j, "cancelled");
+          }
+          cancelledEarly = true;
+          break;
+        }
+      }
+
+      const item = pdfItems[i];
       const itemTitle = item.getDisplayTitle();
       logDebug(`Processing "${itemTitle}"`);
 
-      // Step 10a: Get file path
+      // Get file path
       const path = await item.getFilePathAsync();
-
-      // Step 10b: If no path, show error and skip
       if (!path) {
         logError(`No file path for "${itemTitle}"`);
+        dialog.setFileStatus(i, "error", getString("error-no-file"));
         continue;
       }
 
-      // Step 10c: Read file
+      // Read file
       const data = await IOUtils.read(path);
 
-      // Step 10d: Open progress dialog
-      const progress = await openProgressDialog(itemTitle);
+      // Update status and start timer
+      dialog.setFileStatus(i, "uploading");
+      dialog.startFileTimer(i);
 
       try {
-        // Step 10e: Call OCR pipeline
-        const onProgress = (
-          status: string,
-          elapsedSec?: number,
-        ): void => {
+        // Build progress callback
+        const onProgress = (status: string): void => {
           switch (status) {
             case "uploading":
-              progress.updateStatus(getString("progress-uploading"));
+              dialog.setFileStatus(i, "uploading");
               break;
             case "processing":
-              if (elapsedSec !== undefined && elapsedSec > 0) {
-                progress.updateStatus(
-                  getString("progress-processing") + ` (${elapsedSec}s)`,
-                );
-              } else {
-                progress.updateStatus(getString("progress-processing"));
-              }
+              dialog.setFileStatus(i, "processing");
               break;
             case "downloading":
-              progress.updateStatus(getString("progress-downloading"));
+              dialog.setFileStatus(i, "downloading");
               break;
           }
         };
+
+        // Build cancel check callback
+        const shouldCancel = (): boolean =>
+          cancel.requested && cancel.behavior === "abandon";
 
         const ocrResult = await ocrPdf(
           data,
@@ -358,10 +372,23 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
           accessToken,
           { ocrLang: result.ocrLang, ocrType: result.ocrType },
           onProgress,
+          shouldCancel,
         );
 
-        // Step 10f: Save result
-        progress.updateStatus(getString("progress-saving"));
+        // Check if abandoned during processing
+        if (cancel.requested && cancel.behavior === "abandon") {
+          dialog.setFileStatus(i, "cancelled");
+          dialog.freezeFileTimer(i);
+          // Mark remaining
+          for (let j = i + 1; j < pdfItems.length; j++) {
+            dialog.setFileStatus(j, "cancelled");
+          }
+          cancelledEarly = true;
+          break;
+        }
+
+        // Save result
+        dialog.setFileStatus(i, "saving");
 
         if (result.overwrite) {
           await safeOverwrite(path, ocrResult);
@@ -382,17 +409,36 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
             importOptions.parentItemID = item.parentItem.id;
           }
           await Zotero.Attachments.importFromFile(importOptions);
-
-          // Clean up the temp file after import
           await IOUtils.remove(newPath);
         }
 
+        dialog.setFileStatus(i, "complete");
+        dialog.freezeFileTimer(i);
+        completedCount++;
         logInfo(`OCR complete: "${itemTitle}"`);
 
-        // Step 10g: Show success and wait for user to dismiss
-        progress.showSuccess(getString("progress-done"));
+        // If cancel was requested with "complete" behavior, we finished this file, now stop
+        if (cancel.requested && cancel.behavior === "complete") {
+          for (let j = i + 1; j < pdfItems.length; j++) {
+            dialog.setFileStatus(j, "cancelled");
+          }
+          cancelledEarly = true;
+          break;
+        }
       } catch (error: unknown) {
+        // Check if this was a cancellation error
         const isApiError = error instanceof AdobeApiError;
+        if (isApiError && error.step === "ocr-cancelled") {
+          dialog.setFileStatus(i, "cancelled");
+          dialog.freezeFileTimer(i);
+          for (let j = i + 1; j < pdfItems.length; j++) {
+            dialog.setFileStatus(j, "cancelled");
+          }
+          cancelledEarly = true;
+          logInfo(`OCR cancelled by user at "${itemTitle}"`);
+          break;
+        }
+
         const technicalMsg =
           error instanceof Error ? error.message : String(error);
         const userMsg = isApiError ? error.userMessage : technicalMsg;
@@ -402,16 +448,52 @@ export async function ocrSelectedItems(window: Window): Promise<void> {
           error instanceof Error ? error : undefined,
         );
 
-        progress.showError(
-          getString("error-ocr-failed", { args: { message: userMsg } }),
-        );
+        dialog.setFileStatus(i, "error", userMsg);
+        dialog.freezeFileTimer(i);
       }
-
-      // Wait for user to close the dialog before processing next item
-      await progress.waitForClose();
     }
+
+    // Step 13: Show summary
+    const elapsed = dialog.getOverallElapsed();
+    if (cancelledEarly) {
+      dialog.showSummary(
+        getString("footer-cancelled", {
+          args: {
+            completed: String(completedCount),
+            total: String(pdfItems.length),
+            elapsed,
+          },
+        }),
+      );
+    } else if (completedCount === pdfItems.length) {
+      dialog.showSummary(
+        getString("footer-complete-all", {
+          args: {
+            completed: String(completedCount),
+            total: String(pdfItems.length),
+            elapsed,
+          },
+        }),
+      );
+    } else {
+      dialog.showSummary(
+        getString("footer-complete-some", {
+          args: {
+            completed: String(completedCount),
+            total: String(pdfItems.length),
+            elapsed,
+          },
+        }),
+      );
+    }
+
+    dialog.showCloseButton();
+
+    // Step 14: Wait for user to close
+    await dialog.waitForClose();
+    dialog.destroy();
   } catch (error: unknown) {
-    // Step 12: Catch-all for unexpected errors
+    // Catch-all for unexpected errors
     const message = error instanceof Error ? error.message : String(error);
     logError(
       `Unexpected error: ${message}`,

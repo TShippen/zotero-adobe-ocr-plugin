@@ -292,8 +292,10 @@ function authHeaders(
  * @param accessToken - A valid access token obtained from getAccessToken.
  * @param options - OCR language and type options.
  * @param onProgress - Optional callback invoked with status strings at key stages.
+ * @param shouldCancel - Optional callback checked each poll iteration; when it
+ *   returns true the pipeline throws an AdobeApiError with step "ocr-cancelled".
  * @returns The OCR-processed PDF as a Uint8Array.
- * @throws {AdobeApiError} When any step of the pipeline fails.
+ * @throws {AdobeApiError} When any step of the pipeline fails or the user cancels.
  */
 export async function ocrPdf(
   pdfData: Uint8Array,
@@ -301,6 +303,7 @@ export async function ocrPdf(
   accessToken: string,
   options: OcrOptions,
   onProgress?: (status: string, elapsedSec?: number) => void,
+  shouldCancel?: () => boolean,
 ): Promise<Uint8Array> {
   // Step 1: Request upload URI
   onProgress?.("uploading");
@@ -322,6 +325,7 @@ export async function ocrPdf(
     accessToken,
     pollUrl,
     onProgress,
+    shouldCancel,
   );
   logDebug("OCR job complete, downloading result");
 
@@ -478,9 +482,7 @@ async function submitOcrJob(
     } catch {
       // ignore
     }
-    logDebug(
-      `OCR submit failed (${response.status}): ${responseBody}`,
-    );
+    logDebug(`OCR submit failed (${response.status}): ${responseBody}`);
     throw new AdobeApiError({
       message: `OCR submit returned HTTP ${response.status}: ${response.statusText}`,
       statusCode: response.status,
@@ -510,17 +512,29 @@ async function submitOcrJob(
  * @param accessToken - A valid access token.
  * @param pollUrl - The polling URL from the Location header in step 3.
  * @param onProgress - Optional callback invoked each poll with status and elapsed seconds.
+ * @param shouldCancel - Optional callback checked at the start of each poll
+ *   iteration; when it returns true, polling is aborted with an AdobeApiError
+ *   whose step is "ocr-cancelled".
  * @returns The download URI for the processed PDF.
- * @throws {AdobeApiError} When polling fails, the job fails, or polling times out.
+ * @throws {AdobeApiError} When polling fails, the job fails, polling times out, or the user cancels.
  */
 async function pollForCompletion(
   clientId: string,
   accessToken: string,
   pollUrl: string,
   onProgress?: (status: string, elapsedSec?: number) => void,
+  shouldCancel?: () => boolean,
 ): Promise<string> {
   const startTime = Date.now();
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+    if (shouldCancel?.()) {
+      throw new AdobeApiError({
+        message: "OCR cancelled by user",
+        step: "ocr-cancelled",
+        userMessage: "OCR was cancelled.",
+      });
+    }
+
     const elapsedSec = Math.round((Date.now() - startTime) / 1000);
     onProgress?.("processing", elapsedSec);
     logTrace(`Poll attempt ${attempt + 1}/${MAX_POLL_ATTEMPTS}`);
