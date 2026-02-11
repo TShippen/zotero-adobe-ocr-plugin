@@ -4,6 +4,14 @@ import { config } from "../package.json";
 
 const basicTool = new BasicTool();
 
+function defineGlobal(name: string, getter: () => unknown): void {
+  Object.defineProperty(_globalThis, name, {
+    get() {
+      return getter ? getter() : basicTool.getGlobal(name);
+    },
+  });
+}
+
 // @ts-expect-error - Plugin instance is not typed
 if (!basicTool.getGlobal("Zotero")[config.addonInstance]) {
   _globalThis.addon = new Addon();
@@ -12,14 +20,4 @@ if (!basicTool.getGlobal("Zotero")[config.addonInstance]) {
   });
   // @ts-expect-error - Plugin instance is not typed
   Zotero[config.addonInstance] = addon;
-}
-
-function defineGlobal(name: Parameters<BasicTool["getGlobal"]>[0]): void;
-function defineGlobal(name: string, getter: () => unknown): void;
-function defineGlobal(name: string, getter?: () => unknown) {
-  Object.defineProperty(_globalThis, name, {
-    get() {
-      return getter ? getter() : basicTool.getGlobal(name);
-    },
-  });
 }
