@@ -47,12 +47,15 @@ function getString(
   },
 ): string;
 function getString(
-  ...inputs: [
-    FluentMessageId,
-  ] | [
-    FluentMessageId,
-    string | { branch?: string; args?: Record<string, string | number | null> },
-  ]
+  ...inputs:
+    | [FluentMessageId]
+    | [
+        FluentMessageId,
+        (
+          | string
+          | { branch?: string; args?: Record<string, string | number | null> }
+        ),
+      ]
 ): string {
   if (inputs.length === 1) {
     return _getString(inputs[0]);
@@ -84,7 +87,10 @@ interface Pattern {
  */
 function _getString(
   localeString: FluentMessageId,
-  options: { branch?: string; args?: Record<string, string | number | null> } = {},
+  options: {
+    branch?: string;
+    args?: Record<string, string | number | null>;
+  } = {},
 ): string {
   const localStringWithPrefix = `${config.addonRef}-${localeString}`;
   const { branch, args } = options;

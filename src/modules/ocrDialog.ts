@@ -666,7 +666,9 @@ export async function openUnifiedDialog(
     throw new Error("Dialog window failed to open");
   }
   const doc = win.document;
-  logDebug(`Dialog opened with ${pdfItems.length} PDF(s), ${nonPdfItems.length} skipped`);
+  logDebug(
+    `Dialog opened with ${pdfItems.length} PDF(s), ${nonPdfItems.length} skipped`,
+  );
 
   // --- Set default dropdown values from preferences ---
   const langSelect = doc.getElementById(
@@ -767,7 +769,9 @@ export async function openUnifiedDialog(
             ) as HTMLSelectElement | null;
             const ocrType = typeEl?.value ?? defaults.ocrType;
 
-            logDebug(`Start OCR clicked: lang=${ocrLang}, type=${ocrType}, overwrite=${overwrite}`);
+            logDebug(
+              `Start OCR clicked: lang=${ocrLang}, type=${ocrType}, overwrite=${overwrite}`,
+            );
             resolve({ overwrite, ocrLang, ocrType });
           });
         }

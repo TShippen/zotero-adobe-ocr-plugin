@@ -10,7 +10,9 @@ const PREFS_PREFIX = config.prefsPrefix;
  * @param key - The preference key to retrieve.
  * @returns The stored value for the given key.
  */
-export function getPref<K extends keyof PluginPrefsMap>(key: K): PluginPrefsMap[K] {
+export function getPref<K extends keyof PluginPrefsMap>(
+  key: K,
+): PluginPrefsMap[K] {
   return Zotero.Prefs.get(`${PREFS_PREFIX}.${key}`, true) as PluginPrefsMap[K];
 }
 

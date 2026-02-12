@@ -96,7 +96,7 @@ async function showCancelPrompt(): Promise<"complete" | "abandon" | "resume"> {
   const defaultBehavior = getPref("cancelBehavior") as string;
 
   const ps = Services.prompt;
-   
+
   const flags =
     ps.BUTTON_POS_0! * ps.BUTTON_TITLE_IS_STRING! +
     ps.BUTTON_POS_1! * ps.BUTTON_TITLE_IS_STRING! +
@@ -107,7 +107,6 @@ async function showCancelPrompt(): Promise<"complete" | "abandon" | "resume"> {
     defaultBehavior === "abandon"
       ? ps.BUTTON_POS_1_DEFAULT!
       : ps.BUTTON_POS_0_DEFAULT!;
-   
 
   const result = ps.confirmEx(
     Zotero.getMainWindow() as unknown as mozIDOMWindowProxy,
