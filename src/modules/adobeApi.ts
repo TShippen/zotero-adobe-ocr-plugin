@@ -12,7 +12,11 @@ import { logDebug, logTrace } from "../utils/log";
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Supported OCR language locales for Adobe PDF Services. */
+/** Supported OCR language locales for Adobe PDF Services.
+ *
+ * These are manually listed because they cannot be programmatically
+ * retrieved from the API.
+ * */
 export const OCR_LANGUAGES: ReadonlyArray<{
   readonly code: string;
   readonly label: string;
@@ -50,7 +54,11 @@ export const OCR_LANGUAGES: ReadonlyArray<{
   { code: "sr-SR", label: "Serbian" },
 ];
 
-/** Supported OCR output types for Adobe PDF Services. */
+/** Supported OCR output types for Adobe PDF Services.
+ * These values differ from the Node.js implementation and were
+ * determined via testing and discovery; they are not noted in
+ * the REST API documentation.
+ * */
 export const OCR_TYPES: ReadonlyArray<{
   readonly value: string;
   readonly label: string;
@@ -150,7 +158,7 @@ interface TokenResponse {
 /**
  * Obtain an access token from the Adobe PDF Services token endpoint.
  *
- * Returns a cached token when one exists and has not expired. Otherwise
+ * Returns a cached token when one exists and has not expired. Otherwise,
  * performs a fresh token request using the provided credentials.
  *
  * @param clientId - Adobe PDF Services client ID.
