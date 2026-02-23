@@ -27,7 +27,8 @@
     "lint:fix": "prettier --write . && eslint . --fix",
     "release": "zotero-plugin release",
     "test": "zotero-plugin test",
-    "update-deps": "npm update --save"
+    "update-deps": "npm update --save",
+    "prepare": "husky"
   },
   "dependencies": {
     "zotero-plugin-toolkit": "^5.1.0-beta.13"
@@ -39,11 +40,17 @@
     "@zotero-plugin/eslint-config": "^0.6.7",
     "chai": "^6.2.1",
     "eslint": "^9.39.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "mocha": "^11.7.5",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "zotero-plugin-scaffold": "^0.8.2",
     "zotero-types": "^4.1.0-beta.4"
+  },
+  "lint-staged": {
+    "*.{ts,mjs,js,json,xhtml,ftl,css}": "prettier --write",
+    "*.{ts,mjs,js}": "eslint --fix"
   },
   "prettier": {
     "printWidth": 80,
