@@ -38,7 +38,7 @@ Select one or more items in your library, right-click, and choose **OCR Selected
 
 ### Disclosure of Generative AI Use
 
-This project was created with assistance from Generative AI, specifically Claude Code. As the author, I don't consider the way I used Claude Code to be "vibe coding", but want to be transparent about its use. Code that I contribute to this project in the future bears this same disclaimer unless otherwise noted. I intend to continue supporting the project and hope to open it for community contributions soon.
+This project was created with assistance from Generative AI, specifically Claude Code. As the author, I don't consider the way that Claude Code was used to be "vibe coding", but want to be transparent about its use in this project. Code that I contribute to this project in the future bears this same disclaimer unless otherwise noted.
 
 ### Use of Adobe REST API
 
