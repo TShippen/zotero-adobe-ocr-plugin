@@ -397,6 +397,14 @@ export async function ocrSelectedItems(_window: Window): Promise<void> {
             ? filename.replace(/\.pdf$/i, ".ocr.pdf")
             : `${filename}.ocr.pdf`;
           const newPath = dir ? PathUtils.join(dir, basename) : basename;
+
+          if (!isValidPdf(ocrResult)) {
+            logError(`OCR result failed PDF validation for "${itemTitle}"`);
+            dialog.setFileStatus(i, "error", "OCR result is not a valid PDF");
+            dialog.freezeFileTimer(i);
+            continue;
+          }
+
           await IOUtils.write(newPath, ocrResult);
 
           const importOptions: { file: string; parentItemID?: number } = {
