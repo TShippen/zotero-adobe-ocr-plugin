@@ -5,7 +5,7 @@
 [![downloads](https://img.shields.io/github/downloads/tshippen/zotero-adobe-ocr-plugin/latest/total?style=flat-square)](https://github.com/tshippen/zotero-adobe-ocr-plugin/releases)
 [![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
 
-A Zotero plugin that adds OCR (optical character recognition) to PDF attachments using the [Adobe PDF Services API](https://developer.adobe.com/document-services/apis/pdf-services/). It can serve as an alternative to Zotero's built-in OCR, which relies on Tesseract.
+A Zotero plugin that adds OCR (optical character recognition) to PDF attachments using the [Adobe PDF Services API](https://developer.adobe.com/document-services/apis/pdf-services/). It can serve as an alternative to other OCR plugins that rely on Tesseract OCR.
 
 <img src="docs/screenshot-progress.png" alt="OCR dialog showing per-file processing status with completion checkmarks, active processing, and elapsed timers" width="400">
 
