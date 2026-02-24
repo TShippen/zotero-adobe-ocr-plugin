@@ -1,4 +1,4 @@
-# ![icon](addon/content/icons/favicon@0.5x.png) Zotero Adobe OCR
+# ![](addon/content/icons/favicon@0.5x.png) Zotero Adobe OCR
 
 [![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
 [![latest release](https://img.shields.io/github/v/release/tshippen/zotero-adobe-ocr-plugin?style=flat-square)](https://github.com/tshippen/zotero-adobe-ocr-plugin/releases)
@@ -12,7 +12,15 @@ A Zotero plugin that adds OCR (optical character recognition) to PDF attachments
 ## Prerequisites
 
 - **Zotero 7** or later
-- **Adobe PDF Services API credentials** (Client ID and Client Secret). The [free tier](https://developer.adobe.com/document-services/docs/overview/limits/#free-tier) includes a set of document transactions per month; see [Adobe's usage limits](https://developer.adobe.com/document-services/docs/overview/limits/) for current details. To create credentials, sign in to the [Adobe Developer Console](https://developer.adobe.com/console/projects), [create a new Project](https://developer.adobe.com/developer-console/docs/guides/getting-started#projects), and [add the PDF Services API with OAuth Server-to-Server credentials](https://developer.adobe.com/developer-console/docs/guides/services/services-add-api-oauth-s2s).
+- **Adobe PDF Services API credentials** (Client ID and Client Secret)
+
+  The [free tier](https://developer.adobe.com/document-services/docs/overview/limits/#free-tier) includes a set of document transactions per month; see [Adobe's usage limits](https://developer.adobe.com/document-services/docs/overview/limits/) for current details. To create credentials:
+
+  1. Sign in to the [Adobe Developer Console](https://developer.adobe.com/console/projects)
+  2. [Create a new Project](https://developer.adobe.com/developer-console/docs/guides/getting-started#projects)
+  3. [Add the PDF Services API with OAuth Server-to-Server credentials](https://developer.adobe.com/developer-console/docs/guides/services/services-add-api-oauth-s2s)
+
+  _Note: Some institutional Adobe accounts (e.g. university or enterprise) may restrict access to the Developer Console. If you encounter issues, try using a personal Adobe account._
 
 ## Installation
 
