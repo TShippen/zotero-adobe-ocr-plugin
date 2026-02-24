@@ -34,6 +34,11 @@ Open Zotero `Settings` > `Adobe OCR` and enter your Client ID and Client Secret.
 
 Select one or more items in your library, right-click, and choose **OCR Selected PDFs**. The dialog allows you to choose a language, output type (searchable image or exact), and whether to overwrite the original PDF or create a new attachment. Progress is tracked per-file during processing.
 
+## Contributing
+
+This is a personal project, and I'm not accepting pull requests at this time.
+Bug reports, feature requests, and other feedback are very welcome, please [open an issue](https://github.com/tshippen/zotero-adobe-ocr-plugin/issues)!
+
 ## Disclaimers
 
 ### Disclosure of Generative AI Use
