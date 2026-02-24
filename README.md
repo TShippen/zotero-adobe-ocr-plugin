@@ -53,6 +53,10 @@ OCR processing is performed by Adobe's cloud service. When you use this plugin, 
 
 Adobe and Adobe PDF Services are either registered trademarks or trademarks of Adobe in the United States and/or other countries.
 
+### Icon
+
+Plugin icon from [Tabler Icons](https://tabler.io/icons) (MIT License).
+
 ### Use of Template
 
 This project uses the [zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template) created by [windingwind](https://github.com/windingwind).
