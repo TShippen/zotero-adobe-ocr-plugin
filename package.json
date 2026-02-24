@@ -1,7 +1,7 @@
 {
   "name": "zotero-adobe-ocr",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OCR PDFs using Adobe PDF Services API",
   "config": {
     "addonName": "Zotero Adobe OCR",
