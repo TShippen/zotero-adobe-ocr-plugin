@@ -15,6 +15,7 @@ import { ocrSelectedItems } from "./ocrManager";
 // ---------------------------------------------------------------------------
 
 const MENU_ITEM_ID = "zotero-adobe-ocr-menuitem";
+const ITEM_MENU_ID = "zotero-itemmenu";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -29,30 +30,36 @@ const MENU_ITEM_ID = "zotero-adobe-ocr-menuitem";
  * @param window - The Zotero main window
  */
 export function registerMenuItem(window: Window): void {
-  const addonInstance = Zotero[config.addonInstance as keyof typeof Zotero] as
-    | { data: { ztoolkit: ZToolkit } }
-    | undefined;
+  const doc = window.document;
+  const menuPopup = doc.getElementById(ITEM_MENU_ID);
 
-  if (!addonInstance) {
+  if (!menuPopup) {
     Zotero.logError(
       new Error(
-        "[Adobe OCR] Could not find addon instance for menu registration",
+        "[Adobe OCR] Could not find item context menu for registration",
       ),
     );
     return;
   }
 
-  const ztk = addonInstance.data.ztoolkit;
+  // Avoid duplicate registration
+  if (doc.getElementById(MENU_ITEM_ID)) {
+    return;
+  }
 
-  ztk.Menu.register("item", {
-    tag: "menuitem",
-    id: MENU_ITEM_ID,
-    label: getString("menuitem-ocr", "label"),
-    commandListener: () => {
-      ocrSelectedItems(window);
-    },
-    icon: `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`,
+  const menuItem = doc.createXULElement("menuitem");
+  menuItem.id = MENU_ITEM_ID;
+  menuItem.setAttribute("label", getString("menuitem-ocr", "label"));
+  menuItem.setAttribute(
+    "image",
+    `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`,
+  );
+  menuItem.classList.add("menuitem-iconic");
+  menuItem.addEventListener("command", () => {
+    ocrSelectedItems(window);
   });
+
+  menuPopup.appendChild(menuItem);
 }
 
 /**
