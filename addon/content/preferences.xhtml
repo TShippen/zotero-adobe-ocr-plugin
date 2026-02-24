@@ -42,10 +42,14 @@
       ></html:button>
       <html:span
         id="zotero-prefpane-__addonRef__-validate-status"
+        role="status"
+        aria-live="polite"
         style="font-size: 12px"
       ></html:span>
     </hbox>
   </groupbox>
+
+  <html:hr style="border: none; border-top: 1px solid #ccc; margin: 8px 0" />
 
   <!-- Default OCR Options Section -->
   <groupbox>
@@ -56,7 +60,11 @@
         data-l10n-id="pref-ocr-lang"
         style="min-width: 100px"
       ></html:label>
-      <menulist id="zotero-prefpane-__addonRef__-ocr-lang" preference="ocrLang">
+      <menulist
+        id="zotero-prefpane-__addonRef__-ocr-lang"
+        preference="ocrLang"
+        aria-label="Language"
+      >
         <menupopup>
           <menuitem label="English (US)" value="en-US" />
           <menuitem label="English (GB)" value="en-GB" />
@@ -98,7 +106,11 @@
         data-l10n-id="pref-ocr-type"
         style="min-width: 100px"
       ></html:label>
-      <menulist id="zotero-prefpane-__addonRef__-ocr-type" preference="ocrType">
+      <menulist
+        id="zotero-prefpane-__addonRef__-ocr-type"
+        preference="ocrType"
+        aria-label="OCR Type"
+      >
         <menupopup>
           <menuitem
             data-l10n-id="pref-ocr-type-exact"
@@ -120,6 +132,7 @@
       <menulist
         id="zotero-prefpane-__addonRef__-cancel-behavior"
         preference="cancelBehavior"
+        aria-label="When cancelling"
       >
         <menupopup>
           <menuitem data-l10n-id="pref-cancel-complete" value="complete" />
@@ -128,6 +141,8 @@
       </menulist>
     </hbox>
   </groupbox>
+
+  <html:hr style="border: none; border-top: 1px solid #ccc; margin: 8px 0" />
 </groupbox>
 <vbox>
   <html:label

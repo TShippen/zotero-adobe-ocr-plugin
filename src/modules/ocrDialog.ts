@@ -328,8 +328,13 @@ export async function openUnifiedDialog(
       {
         tag: "label",
         namespace: "html",
-        properties: { innerHTML: "<strong>Output mode:</strong>" },
-        styles: { fontSize: "13px", display: "block", marginBottom: "4px" },
+        properties: { textContent: "Output mode:" },
+        styles: {
+          fontSize: "13px",
+          fontWeight: "bold",
+          display: "block",
+          marginBottom: "4px",
+        },
       },
       {
         tag: "div",
@@ -409,13 +414,16 @@ export async function openUnifiedDialog(
       {
         tag: "label",
         namespace: "html",
-        properties: { innerHTML: "<strong>Language:</strong>" },
-        styles: { fontSize: "13px", minWidth: "80px" },
+        id: "ocr-dialog-lang-label",
+        properties: { textContent: "Language:" },
+        attributes: { for: "ocr-dialog-lang" },
+        styles: { fontSize: "13px", fontWeight: "bold", minWidth: "80px" },
       },
       {
         tag: "select",
         namespace: "html",
         id: "ocr-dialog-lang",
+        attributes: { "aria-labelledby": "ocr-dialog-lang-label" },
         children: OCR_LANGUAGES.map((lang) => ({
           tag: "option",
           namespace: "html",
@@ -440,13 +448,16 @@ export async function openUnifiedDialog(
       {
         tag: "label",
         namespace: "html",
-        properties: { innerHTML: "<strong>OCR type:</strong>" },
-        styles: { fontSize: "13px", minWidth: "80px" },
+        id: "ocr-dialog-type-label",
+        properties: { textContent: "OCR type:" },
+        attributes: { for: "ocr-dialog-type" },
+        styles: { fontSize: "13px", fontWeight: "bold", minWidth: "80px" },
       },
       {
         tag: "select",
         namespace: "html",
         id: "ocr-dialog-type",
+        attributes: { "aria-labelledby": "ocr-dialog-type-label" },
         children: OCR_TYPES.map((type) => ({
           tag: "option",
           namespace: "html",
@@ -533,6 +544,7 @@ export async function openUnifiedDialog(
       {
         tag: "table",
         namespace: "html",
+        attributes: { "aria-label": "OCR file processing status" },
         styles: { width: "100%", borderCollapse: "collapse" },
         children: [
           {
@@ -879,8 +891,10 @@ export async function openUnifiedDialog(
 
       if (status === "error" && errorTooltip) {
         cell.title = errorTooltip;
+        cell.setAttribute("aria-label", `${display.text}: ${errorTooltip}`);
       } else {
         cell.title = "";
+        cell.removeAttribute("aria-label");
       }
     },
 
