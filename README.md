@@ -7,7 +7,7 @@
 
 A Zotero plugin that adds OCR (optical character recognition) to PDF attachments using the [Adobe PDF Services API](https://developer.adobe.com/document-services/apis/pdf-services/). It can serve as an alternative to Zotero's built-in OCR, which relies on Tesseract.
 
-<!-- TODO: Add screenshot of the OCR dialog -->
+<img src="docs/screenshot-progress.png" alt="OCR dialog showing per-file processing status with completion checkmarks, active processing, and elapsed timers" width="400">
 
 ## Prerequisites
 
@@ -28,11 +28,13 @@ A Zotero plugin that adds OCR (optical character recognition) to PDF attachments
 
 Open Zotero `Settings` > `Adobe OCR` and enter your Client ID and Client Secret. Use the Validate button to confirm they are working. You can also set default preferences for OCR language, output type, and cancellation behavior from this pane.
 
-<!-- TODO: Add screenshot of the preferences pane -->
+<img src="docs/screenshot-preferences.png" alt="Adobe OCR preferences pane showing API credential fields, validation status, and default OCR options" width="600">
 
 ## Usage
 
 Select one or more items in your library, right-click, and choose **OCR Selected PDFs**. The dialog allows you to choose a language, output type (searchable image or exact), and whether to overwrite the original PDF or create a new attachment. Progress is tracked per-file during processing.
+
+<img src="docs/screenshot-context-menu.png" alt="Zotero right-click context menu showing the OCR with Adobe PDF Services option" width="400">
 
 ## Contributing
 
