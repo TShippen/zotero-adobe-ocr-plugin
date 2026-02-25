@@ -25,7 +25,7 @@ A Zotero plugin that adds OCR (optical character recognition) to PDF attachments
 
 1. Download the latest `.xpi` file from [Releases](https://github.com/tshippen/zotero-adobe-ocr-plugin/releases/latest) ([all releases](https://github.com/tshippen/zotero-adobe-ocr-plugin/releases)).
 
-   If you are using Firefox, right-click the `.xpi` link and select "Save Link As..." to download the file instead of opening it.
+   _Note: If you are using Firefox, right-click the `.xpi` link and select "Save Link As..." to download the file instead of opening it._
 
 2. In Zotero, go to `Tools` > `Plugins`, click the gear icon, and select `Install Plugin from File...`.
 
