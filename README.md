@@ -15,7 +15,6 @@ A Zotero plugin that adds OCR (optical character recognition) to PDF attachments
 - **Adobe PDF Services API credentials** (Client ID and Client Secret)
 
   The [free tier](https://developer.adobe.com/document-services/docs/overview/limits/#free-tier) includes a set of document transactions per month; see [Adobe's usage limits](https://developer.adobe.com/document-services/docs/overview/limits/) for current details. To create credentials:
-
   1. Sign in to the [Adobe Developer Console](https://developer.adobe.com/console/projects)
   2. [Create a new Project](https://developer.adobe.com/developer-console/docs/guides/getting-started#projects)
   3. [Add the PDF Services API with OAuth Server-to-Server credentials](https://developer.adobe.com/developer-console/docs/guides/services/services-add-api-oauth-s2s)
