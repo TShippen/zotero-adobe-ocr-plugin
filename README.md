@@ -33,7 +33,7 @@ A Zotero plugin that OCRs (optical character recognition) PDF attachments using 
 
 ## Setup
 
-Open Zotero `Settings` > `Adobe OCR` and enter your Client ID and Client Secret. Use the Validate button to confirm they are working. You can also set default preferences for OCR language, output type, and cancellation behavior from this pane.
+Open Zotero `Settings` > `Adobe OCR` and enter your Client ID and Client Secret. Use the Validate button to confirm they are working. You can also set default preferences for OCR language, output type, and cancellation behavior.
 
 <img src="docs/screenshot-preferences.png" alt="Adobe OCR preferences pane showing API credential fields, validation status, and default OCR options" width="600">
 
