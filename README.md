@@ -52,11 +52,11 @@ Bug reports, feature requests, and other feedback are very welcome, please [open
 
 ### Disclosure of Generative AI Use
 
-This project was created with assistance from Generative AI, specifically Claude Code. As the author, I don't consider the way that Claude Code was used to be "vibe coding", but want to be transparent about its use in this project. Code that I contribute to this project in the future bears this same disclaimer unless otherwise noted.
+This project was created with assistance from Generative AI, specifically Claude Code. I don't consider the way that Claude Code was used to be "vibe coding", but want to be transparent about its use in this project. My future contributions to this project bear this same disclaimer unless otherwise noted.
 
 ### Use of Adobe REST API
 
-This plugin is an independent, third-party project. It is not affiliated with, endorsed by, or supported by Adobe.
+**This plugin is an independent, third-party project. It is not affiliated with, endorsed by, or supported by Adobe.**
 
 OCR processing is performed by Adobe's cloud service. When you use this plugin, your PDF files are uploaded to Adobe's servers. Refer to [Adobe's terms of service](https://www.adobe.com/legal/terms.html) for their data handling policies.
 
