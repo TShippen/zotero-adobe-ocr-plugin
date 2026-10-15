@@ -1,6 +1,6 @@
 # ![](addon/content/icons/favicon@0.5x.png) Zotero Adobe OCR
 
-[![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
+[![zotero target version](https://img.shields.io/badge/Zotero-8--10-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
 [![latest release](https://img.shields.io/github/v/release/tshippen/zotero-adobe-ocr-plugin?style=flat-square)](https://github.com/tshippen/zotero-adobe-ocr-plugin/releases)
 [![downloads](https://img.shields.io/github/downloads/tshippen/zotero-adobe-ocr-plugin/latest/total?style=flat-square)](https://github.com/tshippen/zotero-adobe-ocr-plugin/releases)
 [![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
@@ -11,7 +11,7 @@ A Zotero plugin that OCRs (optical character recognition) PDF attachments using 
 
 ## Prerequisites
 
-- **Zotero 7** or later
+- **Zotero 8, 9, or 10** (tested on Zotero 9 and 10; Zotero 11 is not yet supported)
 - **Adobe PDF Services API credentials** (Client ID and Client Secret)
 
   The [free tier](https://developer.adobe.com/document-services/docs/overview/limits/#free-tier) includes a set of document transactions per month; see [Adobe's usage limits](https://developer.adobe.com/document-services/docs/overview/limits/) for current details. To create credentials:
