@@ -38,7 +38,17 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
+    env:
+      # Pin to the newest Zotero release covered by strict_max_version.
+      # Bump this when a new 10.0.x ships; change the major only together
+      # with addon/manifest.json.
+      ZOTERO_VERSION: "10.0.6"
     steps:
       - name: Setup JS
         uses: zotero-plugin-dev/workflows/setup-js@main
+      - name: Install Zotero ${{ env.ZOTERO_VERSION }} (release)
+        run: |
+          wget -q -O zotero.tar.xz "https://www.zotero.org/download/client/dl?platform=linux-x86_64&channel=release&version=${ZOTERO_VERSION}"
+          tar -xf zotero.tar.xz
+          echo "ZOTERO_PLUGIN_ZOTERO_BIN_PATH=${PWD}/Zotero_linux-x86_64/zotero" >> "$GITHUB_ENV"
       - run: npm run test
