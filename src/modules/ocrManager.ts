@@ -148,6 +148,10 @@ export async function ocrSelectedItems(_window: Window): Promise<void> {
   try {
     // Step 1: Get selected items
     const zoteroPane = Zotero.getActiveZoteroPane();
+    if (!zoteroPane) {
+      showError(getString("error-no-pdfs"));
+      return;
+    }
     const selectedItems: Zotero.Item[] = zoteroPane.getSelectedItems();
 
     // Step 2: Sort into PDF and non-PDF items

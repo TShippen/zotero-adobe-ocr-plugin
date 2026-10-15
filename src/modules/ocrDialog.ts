@@ -624,7 +624,7 @@ export async function openUnifiedDialog(
   });
 
   // --- Button row (custom HTML buttons, not DialogHelper buttons) ---
-  dialog.addCell(row++, 0, {
+  dialog.addCell(row, 0, {
     tag: "div",
     namespace: "html",
     styles: {
